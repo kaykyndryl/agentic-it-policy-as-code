@@ -64,28 +64,33 @@ Be concise and specific about policy impacts. Format output as structured analys
         
         user_prompt = f"""Analyze this IT support ticket:
 
-Ticket ID: {ticket_data.get('ticket_id')}
-Title: {ticket_data.get('title')}
-Description: {ticket_data.get('description')}
-Department: {ticket_data.get('department')}
+Ticket ID: {ticket_data.get('ticket_id', 'UNKNOWN')}
+Title: {ticket_data.get('title', 'N/A')}
+Description: {ticket_data.get('description', 'N/A')}
+Department: {ticket_data.get('department', 'N/A')}
 Affected Systems: {', '.join(ticket_data.get('affected_systems', []))}
-Severity Reported: {ticket_data.get('severity_reported')}
+Severity Reported: {ticket_data.get('severity_reported', 'N/A')}
 
 Relevant policies mentioned: {', '.join(ticket_data.get('policy_implications', []))}
 
 Provide structured analysis of this ticket's compliance implications."""
         
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.7,
-            max_tokens=1000
-        )
-        
-        return response.choices[0].message.content
+        try:
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1000,
+                timeout=30.0
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            import logging
+            logging.error(f"Error in ticket analysis: {str(e)}")
+            return f"Analysis Error: {str(e)[:200]}"
 
 
 class RiskAssessmentAgent:
@@ -145,36 +150,48 @@ Return ONLY a JSON object with these fields:
   "reasoning": "<explanation>"
 }}"""
         
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.3,
-            max_tokens=500
-        )
-        
-        response_text = response.choices[0].message.content
-        
-        # Try to parse JSON response
         try:
-            # Extract JSON from response
-            json_start = response_text.find('{')
-            json_end = response_text.rfind('}') + 1
-            if json_start >= 0 and json_end > json_start:
-                json_str = response_text[json_start:json_end]
-                return json.loads(json_str)
-        except (json.JSONDecodeError, ValueError):
-            pass
-        
-        # Fallback to default risk assessment
-        return {
-            "risk_score": ticket_data.get("risk_level", 1) * 30,
-            "risk_level": ticket_data.get("risk_level", 1),
-            "classification": f"Level {ticket_data.get('risk_level', 1)} ticket",
-            "reasoning": "Risk assessment based on ticket data"
-        }
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.3,
+                max_tokens=500,
+                timeout=30.0
+            )
+            
+            response_text = response.choices[0].message.content
+            
+            # Try to parse JSON response
+            try:
+                # Extract JSON from response
+                json_start = response_text.find('{')
+                json_end = response_text.rfind('}') + 1
+                if json_start >= 0 and json_end > json_start:
+                    json_str = response_text[json_start:json_end]
+                    return json.loads(json_str)
+            except (json.JSONDecodeError, ValueError):
+                pass
+            
+            # Fallback to default risk assessment
+            return {
+                "risk_score": ticket_data.get("risk_level", 1) * 30,
+                "risk_level": ticket_data.get("risk_level", 1),
+                "classification": f"Level {ticket_data.get('risk_level', 1)} ticket",
+                "reasoning": "Risk assessment based on ticket data"
+            }
+        except Exception as e:
+            import logging
+            logging.error(f"Error in risk assessment: {str(e)}")
+            # Safe fallback
+            return {
+                "risk_score": 50,
+                "risk_level": 2,
+                "classification": "Medium Risk (API Error)",
+                "reasoning": f"Risk assessment error: {str(e)[:100]}"
+            }
 
 
 class RoutingAgent:
@@ -238,27 +255,32 @@ Related Policies: {', '.join(ticket_data.get('policy_implications', []))}
 
 Provide routing decision in JSON format only."""
         
-        response = await self.client.chat.completions.create(
-            model=self.model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.5,
-            max_tokens=600
-        )
-        
-        response_text = response.choices[0].message.content
-        
-        # Try to parse JSON response
         try:
-            json_start = response_text.find('{')
-            json_end = response_text.rfind('}') + 1
-            if json_start >= 0 and json_end > json_start:
-                json_str = response_text[json_start:json_end]
-                return json.loads(json_str)
-        except (json.JSONDecodeError, ValueError):
-            pass
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.5,
+                max_tokens=600,
+                timeout=30.0
+            )
+            
+            response_text = response.choices[0].message.content
+            
+            # Try to parse JSON response
+            try:
+                json_start = response_text.find('{')
+                json_end = response_text.rfind('}') + 1
+                if json_start >= 0 and json_end > json_start:
+                    json_str = response_text[json_start:json_end]
+                    return json.loads(json_str)
+            except (json.JSONDecodeError, ValueError):
+                pass
+        except Exception as e:
+            import logging
+            logging.error(f"Error in routing: {str(e)}")
         
         # Fallback routing
         if risk_level == 1:

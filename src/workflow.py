@@ -50,6 +50,18 @@ class TicketProcessingWorkflow:
         Returns:
             Complete processing results including routing decision
         """
+        # Validate input
+        if not ticket_data or not isinstance(ticket_data, dict):
+            return {
+                "status": "error",
+                "error": "Invalid ticket data - must be a non-empty dictionary",
+                "timestamp": datetime.now().isoformat()
+            }
+        
+        # Ensure required fields exist
+        if not ticket_data.get("ticket_id"):
+            ticket_data["ticket_id"] = f"TKT-{int(datetime.now().timestamp())}"
+        
         ticket_id = ticket_data.get("ticket_id", "UNKNOWN")
         logger.info(f"Starting workflow for ticket {ticket_id}")
         

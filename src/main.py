@@ -49,9 +49,17 @@ async def process_ticket_request(ticket_id: str, ticket_data: dict) -> dict:
     Returns:
         Processing results
     """
-    workflow = await get_workflow()
-    result = await workflow.process_ticket(ticket_data)
-    return result
+    try:
+        workflow = await get_workflow()
+        result = await workflow.process_ticket(ticket_data)
+        return result
+    except Exception as e:
+        logger.error(f"Workflow error for ticket {ticket_id}: {str(e)}", exc_info=True)
+        return {
+            "ticket_id": ticket_id,
+            "status": "error",
+            "error": f"Workflow processing failed: {str(e)[:200]}"
+        }
 
 
 async def create_orchestrator_agent():
@@ -155,16 +163,34 @@ async def simple_asyncio_server():
     async def process_ticket_handler(request):
         """Process ticket endpoint."""
         try:
-            ticket_data = await request.json()
-            result = await process_ticket_request(
-                ticket_data.get("ticket_id", "UNKNOWN"),
-                ticket_data
-            )
+            # Parse JSON with error handling
+            try:
+                ticket_data = await request.json()
+            except Exception as e:
+                logger.error(f"Invalid JSON in request: {str(e)}")
+                return web.json_response(
+                    {"error": f"Invalid JSON: {str(e)[:100]}"},
+                    status=400
+                )
+            
+            # Validate ticket data
+            if not ticket_data or not isinstance(ticket_data, dict):
+                return web.json_response(
+                    {"error": "Request body must be a JSON object"},
+                    status=400
+                )
+            
+            # Process ticket
+            ticket_id = ticket_data.get("ticket_id", "UNKNOWN")
+            logger.info(f"Processing ticket: {ticket_id}")
+            
+            result = await process_ticket_request(ticket_id, ticket_data)
             return web.json_response(result)
+            
         except Exception as e:
-            logger.error(f"Error processing ticket: {str(e)}")
+            logger.error(f"Error processing ticket: {str(e)}", exc_info=True)
             return web.json_response(
-                {"error": str(e)},
+                {"error": f"Internal server error: {str(e)[:100]}"},
                 status=500
             )
     
@@ -202,7 +228,15 @@ async def main():
     logger.info("=" * 80)
     
     try:
+        # Verify environment setup
+        api_key = os.getenv("OPENROUTER_API_KEY")
+        if not api_key or api_key.startswith("<your"):
+            logger.error("❌ OPENROUTER_API_KEY not configured in .env")
+            logger.error("   Please set your API key: export OPENROUTER_API_KEY=<your-openrouter-api-key>")
+            raise ValueError("OpenRouter API key not configured")
+        
         # Create orchestrator agent
+        logger.info("Creating orchestrator agent...")
         agent = await create_orchestrator_agent()
         logger.info("✓ Orchestrator agent created successfully")
         
@@ -210,8 +244,14 @@ async def main():
         logger.info("Starting HTTP server...")
         await simple_asyncio_server()
         
+    except KeyboardInterrupt:
+        logger.info("Server shutdown by user")
     except Exception as e:
-        logger.error(f"Fatal error: {str(e)}")
+        logger.error(f"❌ Fatal error: {str(e)}")
+        logger.error("Verify:")
+        logger.error("  1. OPENROUTER_API_KEY is set in .env")
+        logger.error("  2. Internet connection is active")
+        logger.error("  3. Dependencies installed: pip install -r requirements.txt")
         raise
 
 
