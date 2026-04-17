@@ -1,0 +1,18 @@
+# Core Agent Framework (install agentserver first, then agent-framework to override rc3)
+# Step 1: agentserver + agent-dev-cli (pulls in agent-framework-core==rc3)
+azure-ai-agentserver-agentframework==1.0.0b16
+azure-ai-agentserver-core==1.0.0b16
+agent-dev-cli==0.0.1b260316
+
+# Step 2: agent-framework rc6 (overrides rc3)
+agent-framework-core==1.0.0rc6
+agent-framework-foundry==1.0.0rc6
+agent-framework-openai==1.0.0rc6
+
+# Azure authentication and common utilities
+azure-identity>=1.14.0
+python-dotenv>=1.0.0
+
+# Utilities
+aiohttp>=3.9.0
+pydantic>=2.0.0

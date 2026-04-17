@@ -1,0 +1,49 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python: Run Main Server",
+      "type": "python",
+      "request": "launch",
+      "module": "src.main",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "LOG_LEVEL": "DEBUG"
+      },
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Python: Run Local Test",
+      "type": "python",
+      "request": "launch",
+      "program": "${workspaceFolder}/test_local.py",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "LOG_LEVEL": "DEBUG"
+      },
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Python: Debug with AI Toolkit Inspector",
+      "type": "python",
+      "request": "launch",
+      "module": "agent_dev_cli",
+      "args": [
+        "run",
+        "src/main.py"
+      ],
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "env": {
+        "PYTHONUNBUFFERED": "1",
+        "LOG_LEVEL": "DEBUG"
+      },
+      "cwd": "${workspaceFolder}"
+    }
+  ],
+  "compounds": []
+}

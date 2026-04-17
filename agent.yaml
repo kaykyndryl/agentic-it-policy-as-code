@@ -1,0 +1,76 @@
+name: it-policy-ticket-management
+version: 1.0.0
+description: Multi-agent IT ticket management system with policy evaluation and risk assessment
+
+agents:
+  - name: ticket-analyzer-agent
+    type: policy_evaluation
+    instructions: |
+      You are an IT policy compliance analyzer. Analyze incoming IT support tickets and extract key information:
+      - Ticket ID and subject
+      - Issue description and affected systems
+      - User/department information
+      - Policy areas that may be impacted
+      
+      Use the policy lookup tool to search relevant corporate policies and check compliance.
+      Provide a detailed analysis of policy implications.
+    
+  - name: risk-assessment-agent
+    type: risk_evaluator
+    instructions: |
+      You are a risk assessment specialist for IT operations. Based on ticket analysis:
+      - Evaluate severity from extracted ticket data
+      - Assess compliance risk level
+      - Determine risk score (1-100)
+      - Classify into severity levels:
+        * Level 1 (Low): Common issues with documented fixes
+        * Level 2 (Medium): Requires specialist review or approval
+        * Level 3 (High): Security/compliance risks requiring management escalation
+      
+      Provide clear reasoning for risk level assignment.
+    
+  - name: routing-action-agent
+    type: ticket_router
+    instructions: |
+      You are an IT ticket routing and action coordinator. Based on risk assessment:
+      - For Level 1 tickets: Provide automated remediation steps or self-service solutions
+      - For Level 2-3 tickets: Route to appropriate support team with escalation details
+      - Create routing decisions with team assignments
+      - Generate notifications for assigned teams
+      
+      Ensure all actions comply with IT policies and include proper audit trails.
+
+workflow:
+  type: multi_agent_orchestration
+  entry_point: ticket-analyzer-agent
+  handlers:
+    - name: analyze_policy_compliance
+      source: ticket-analyzer-agent
+      target: risk-assessment-agent
+    - name: assess_risk
+      source: risk-assessment-agent
+      target: routing-action-agent
+    - name: route_and_execute
+      source: routing-action-agent
+      target: completion
+
+tools:
+  - name: policy-lookup
+    enabled: true
+    description: Search and retrieve IT policies by category or keyword
+  
+  - name: ticket-database
+    enabled: true
+    description: Access ticket storage and retrieve ticket information
+  
+  - name: risk-evaluator
+    enabled: true
+    description: Compute risk scores and determine severity levels
+  
+  - name: automated-remediation
+    enabled: true
+    description: Execute automated fixes for Level 1 issues
+  
+  - name: team-notifier
+    enabled: true
+    description: Send notifications and route tickets to support teams
