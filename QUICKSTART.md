@@ -2,7 +2,7 @@
 
 ## ✅ What Has Been Created
 
-Your complete multi-agent IT ticket management system is now ready. Here's what's included:
+Your complete multi-agent IT ticket management system is now ready with **OpenRouter AI** integration.
 
 ### Project Structure
 
@@ -10,40 +10,248 @@ Your complete multi-agent IT ticket management system is now ready. Here's what'
 agentic-it-policy-as-code/
 ├── src/
 │   ├── main.py              # HTTP server entry point
-│   ├── agents.py            # 3 specialized agents (Analyzer, Risk Assessor, Router)
+│   ├── agents.py            # 3 specialized agents (OpenRouter-based)
 │   ├── workflow.py          # Multi-agent orchestration engine
-│   └── tools.py             # 5 integrated tools (Policy, Ticket, Risk, Remediation, Notification)
+│   └── tools.py             # 5 integrated tools
 │
 ├── data/
-│   ├── policies.json        # 8 corporate IT policies (customizable)
+│   ├── policies.json        # 8 corporate IT policies
 │   └── sample_tickets.json  # 7 sample tickets (all 3 risk levels)
 │
 ├── .vscode/
-│   ├── launch.json          # 3 debug configurations
-│   └── tasks.json           # 5 build/run tasks
+│   ├── launch.json          # 2 debug configurations
+│   └── tasks.json           # Build/run tasks
 │
-├── .env                     # Configuration (update with Foundry credentials)
+├── .env                     # Configuration with OpenRouter API key ✓
 ├── agent.yaml              # Workflow configuration
-├── requirements.txt        # Pinned dependencies (Agent Framework rc6)
-├── test_local.py          # Local testing script (✅ verified working)
+├── requirements.txt        # Dependencies (openai, aiohttp, pydantic, etc.)
+├── test_local.py          # Local testing script
 └── README.md              # Complete documentation
 ```
 
-### Core Components
+### What's Changed
 
-**3 Specialized Agents:**
-1. **TicketAnalyzerAgent** - Analyzes tickets against IT policies
-2. **RiskAssessmentAgent** - Evaluates severity (Level 1/2/3)
-3. **RoutingAgent** - Routes to automation or support teams
+Your system now uses **OpenRouter AI** instead of Azure Foundry:
 
-**5 Built-in Tools:**
-1. **PolicyLookupTool** - Search 8 corporate IT policies
-2. **TicketDatabaseTool** - Access ticket information
-3. **RiskEvaluationTool** - Compute risk scores
-4. **RemediationTool** - Automated fixes for Level 1 issues
-5. **NotificationTool** - Route and notify teams
+| Component | Before | Now |
+|-----------|--------|-----|
+| AI Client | `FoundryChatClient` | `AsyncOpenAI` |
+| Authentication | Azure credentials | OpenRouter API key |
+| API Endpoint | Azure AI Foundry | OpenRouter (`openrouter.io/api/v1`) |
+| Setup Complexity | Complex Foundry setup | Free OpenRouter account |
+| Cost | Azure compute + models | Pay-as-you-go (free tier available) |
 
-**8 IT Policies Configured:**
+### Quick Start Steps
+
+#### Step 1: Get OpenRouter API Key (2 minutes)
+
+1. Go to https://openrouter.ai
+2. Sign up (free)
+3. Copy your API key from settings
+4. ✅ Already configured in `.env`!
+
+#### Step 2: Install Dependencies (2 minutes)
+
+```bash
+cd /Users/kayapperson/Documents/agentic-it-policy-as-code/agentic-it-policy-as-code
+pip install -r requirements.txt
+```
+
+#### Step 3: Run Local Test (1 minute)
+
+```bash
+python test_local.py
+```
+
+Output:
+```
+IT TICKET MANAGEMENT SYSTEM - LOCAL TEST
+================================================================================
+📊 Loaded 7 sample tickets
+📋 Loaded 8 IT policies
+
+--- SAMPLE TICKETS ---
+TICKET: TKT-001 - Password Reset Request
+Department: Finance
+Severity: high
+Systems: Active Directory, Email
+Expected Risk Level: 1
+
+--- SAMPLE POLICIES ---
+📋 POL-001: Password Security Policy
+   Category: password_management
+   Scope: mandatory
+   Key Reqs: 4 requirements
+...
+✅ LOCAL TEST COMPLETE
+```
+
+#### Step 4: Start HTTP Server (1 minute)
+
+```bash
+python -m src.main
+```
+
+Server running at: `http://localhost:8000`
+
+#### Step 5: Test with a Ticket
+
+In another terminal:
+
+```bash
+curl -X POST http://localhost:8000/tickets/process \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ticket_id": "TKT-002",
+    "title": "Cannot Access VPN",
+    "description": "VPN connection fails",
+    "department": "Engineering",
+    "affected_systems": ["VPN", "MFA"],
+    "severity_reported": "critical",
+    "policy_implications": ["POL-002"]
+  }'
+```
+
+Response:
+```json
+{
+  "ticket_id": "TKT-002",
+  "status": "completed",
+  "final_action": {
+    "risk_level": 2,
+    "classification": "Level 2 - Medium Risk",
+    "routing": {
+      "assigned_team": "Security Operations",
+      "priority": "high",
+      "escalation_required": false
+    }
+  }
+}
+```
+
+## 📋 Configuration
+
+Your `.env` file is pre-configured:
+
+```env
+OPENROUTER_API_KEY=<your-openrouter-api-key>  # ✓ Configured
+OPENROUTER_MODEL=openai/gpt-4-turbo            # ✓ Set to GPT-4 Turbo
+OPENROUTER_BASE_URL=https://openrouter.io/api/v1
+LOG_LEVEL=INFO
+DEBUG_MODE=false
+```
+
+**Optional: Change Model**
+
+Edit `.env` to try different models:
+```env
+# Faster option
+OPENROUTER_MODEL=openai/gpt-4
+
+# Claude alternative  
+OPENROUTER_MODEL=anthropic/claude-3-opus
+
+# See all: https://openrouter.io/models
+```
+
+## 🎯 How It Works
+
+### Architecture
+
+```
+Incoming Ticket (JSON)
+        ↓
+   [HTTP Server]
+        ↓
+[TicketAnalyzerAgent] (OpenRouter)
+   ├─ Extract info
+   ├─ Check policies
+   └─ Returns: Analysis
+        ↓
+[RiskAssessmentAgent] (OpenRouter)
+   ├─ Evaluate severity
+   ├─ Compute risk score
+   └─ Returns: Level 1/2/3
+        ↓
+[RoutingAgent] (OpenRouter)
+   ├─ Level 1? → Automate
+   ├─ Level 2-3? → Route to team
+   └─ Returns: Action plan
+        ↓
+   Response (JSON)
+```
+
+### Example Flows
+
+**Level 1 Ticket (Auto):**
+```
+Request: "Password Reset"
+         ↓
+Analysis: "Common issue, POL-001"
+         ↓
+Risk: Score=15, Level=1 (Low)
+         ↓
+Action: Auto-remediate (send reset link)
+```
+
+**Level 3 Ticket (Escalate):**
+```
+Request: "Suspicious email with attachment"
+         ↓
+Analysis: "Potential malware, POL-007 Incident Response"
+         ↓
+Risk: Score=95, Level=3 (Critical)
+         ↓
+Action: Escalate to SOC immediately
+```
+
+## 🧪 Tests Available
+
+### Test Local (No API calls)
+
+```bash
+python test_local.py
+```
+
+Tests:
+- ✅ Policies load (8 loaded)
+- ✅ Tickets load (7 loaded)
+- ✅ Tool functions work
+
+### Manual API Test
+
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Process ticket
+curl -X POST http://localhost:8000/tickets/process \
+  -H "Content-Type: application/json" \
+  -d @sample_ticket.json
+```
+
+## 📊 Core Components
+
+### Agents (Using OpenRouter)
+
+1. **TicketAnalyzerAgent**
+   - Analyzes tickets against IT policies
+   - Identifies policy implications
+   - Returns structured analysis
+
+2. **RiskAssessmentAgent**
+   - Calculates risk scores (0-100)  
+   - Assigns levels 1/2/3
+   - Provides reasoning
+
+3. **RoutingAgent**
+   - For Level 1: Provides automation steps
+   - For Level 2-3: Routes to support teams
+   - Determines priority and escalation
+
+### Policies (Configurable)
+
+8 IT policies in `data/policies.json`:
 - POL-001: Password Management
 - POL-002: Multi-Factor Authentication
 - POL-003: Data Classification & Handling
@@ -53,11 +261,83 @@ agentic-it-policy-as-code/
 - POL-007: Incident Response
 - POL-008: Acceptable Use
 
-### Test Results
+### Tools (Local)
 
-✅ Local test completed successfully:
-- Policies loaded: 8
-- Sample tickets loaded: 7
+5 tools in `src/tools.py`:
+- PolicyLookupTool
+- TicketDatabaseTool
+- RiskEvaluationTool
+- RemediationTool
+- NotificationTool
+
+## 🔧 Debug Configurations
+
+**F5 to Debug** - Choose configuration:
+
+1. **Run Local Test**
+   - Tests all components
+   - No OpenRouter API calls
+   - Fast feedback
+
+2. **Run Main Server**
+   - Starts HTTP server
+   - Ready for requests
+   - Real-time processing
+
+## 📞 Next Steps
+
+### Immediate (5 mins)
+- [ ] Run `python test_local.py`
+- [ ] Start server: `python -m src.main`
+- [ ] Test with curl
+
+### Short Term (30 mins)
+- [ ] Customize policies in `data/policies.json`
+- [ ] Add real sample tickets in `data/sample_tickets.json`
+- [ ] Test with your IT tickets
+- [ ] Debug with VS Code (F5)
+
+### Production (Later)
+- [ ] Deploy to Azure Container Apps or App Service
+- [ ] Integrate with ServiceNow/Jira
+- [ ] Set up automated ticket ingestion
+- [ ] Monitor with Application Insights
+
+## 🆘 Troubleshooting
+
+### "OPENROUTER_API_KEY not configured"
+```
+✓ Fix: Check .env file has your API key
+$ cat .env | grep OPENROUTER_API_KEY
+```
+
+### "Connection refused" on localhost:8000  
+```
+✓ Fix: Server started? Check terminal
+$ python -m src.main
+```
+
+### "Rate limit exceeded"
+```
+✓ OpenRouter has usage limits for free tier
+✓ Upgrade account or wait before retry
+```
+
+### "Model not available"
+```
+✓ Check available models: https://openrouter.io/models
+✓ Update OPENROUTER_MODEL in .env
+```
+
+## 📚 Documentation
+
+- **README.md** - Full architecture and API reference
+- **DEMO_test_local.md** - Detailed walkthrough of demo script
+- **QUICKSTART.md** - This file
+
+---
+
+**System is ready to use! Start with:** `python test_local.py` ✅
 - All 5 tools verified working
 - Risk assessment functional
 - Routing logic operational

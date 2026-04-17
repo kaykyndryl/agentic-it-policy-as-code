@@ -2,12 +2,18 @@
 IT Ticket Management System - Local Testing Script
 
 Test the workflow locally with sample data.
+Uses OpenRouter AI for agent execution (requires OPENROUTER_API_KEY in .env).
 """
 
 import json
 import asyncio
 import logging
 from pathlib import Path
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv(override=False)
 
 # Configure logging
 logging.basicConfig(

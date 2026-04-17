@@ -2,7 +2,8 @@
 IT Ticket Management System - HTTP Server
 
 Main entry point for the multi-agent IT ticket management system.
-Hosts the workflow as an HTTP service via the hosting adapter pattern.
+Uses OpenRouter AI (OpenAI-compatible API) for agent execution.
+Hosts the workflow as an HTTP service via FastAPI.
 """
 
 import os
@@ -11,10 +12,7 @@ import logging
 import asyncio
 from typing import Optional
 from dotenv import load_dotenv
-from agent_framework import Agent, Message
-from agent_framework.foundry import FoundryChatClient
-from azure.identity import DefaultAzureCredential
-from azure.ai.agentserver.agentframework import from_agent_framework
+from openai import AsyncOpenAI
 
 # Load environment variables first
 load_dotenv(override=False)
@@ -56,73 +54,164 @@ async def process_ticket_request(ticket_id: str, ticket_data: dict) -> dict:
     return result
 
 
-async def create_agent() -> Agent:
+async def create_orchestrator_agent():
     """
-    Create the main orchestration agent.
+    Create an orchestrator agent that processes tickets.
     
-    This agent serves as the HTTP endpoint for the ticket management system.
+    This agent serves as the main logic engine for ticket management.
     """
-    # Get Foundry configuration
-    project_endpoint = os.getenv("FOUNDRY_PROJECT_ENDPOINT")
-    model_deployment_name = os.getenv("FOUNDRY_MODEL_DEPLOYMENT_NAME")
+    # Get OpenRouter configuration
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4-turbo")
+    base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.io/api/v1")
     
-    if not project_endpoint or not model_deployment_name:
-        logger.warning(
-            "Foundry configuration not fully set. "
-            "Set FOUNDRY_PROJECT_ENDPOINT and FOUNDRY_MODEL_DEPLOYMENT_NAME."
+    if not api_key:
+        logger.error("OPENROUTER_API_KEY environment variable not set")
+        raise ValueError("OPENROUTER_API_KEY not configured")
+    
+    # Create client
+    client = AsyncOpenAI(
+        api_key=api_key,
+        base_url=base_url
+    )
+    
+    logger.info(f"OpenRouter client configured with model: {model}")
+    return client
+
+
+async def simple_http_server():
+    """
+    Simple HTTP server for processing tickets (alternative to hosting adapter).
+    """
+    try:
+        # Import FastAPI only if available
+        from fastapi import FastAPI, HTTPException
+        from fastapi.responses import JSONResponse
+        import uvicorn
+        
+        app = FastAPI(
+            title="IT Ticket Management System",
+            description="Multi-agent system for IT ticket analysis and routing",
+            version="1.0.0"
         )
-        # For testing without Foundry, you could use OpenAI or other providers
-        raise ValueError("Foundry configuration required")
-    
-    # Create Foundry client
-    credential = DefaultAzureCredential()
-    client = FoundryChatClient(
-        project_endpoint=project_endpoint,
-        model=model_deployment_name,
-        credential=credential,
-    )
-    
-    # Create the orchestration agent
-    instructions = """You are an IT Ticket Management System orchestrator. Your role is to:
+        
+        @app.get("/health")
+        async def health_check():
+            """Health check endpoint."""
+            return {"status": "healthy", "service": "IT Ticket Management System"}
+        
+        @app.post("/tickets/process")
+        async def process_ticket(ticket_data: dict):
+            """
+            Process an IT support ticket through the multi-agent workflow.
+            
+            Sample request:
+            {
+                "ticket_id": "TKT-001",
+                "title": "Password Reset Request",
+                "description": "User forgot password",
+                "department": "Finance",
+                "affected_systems": ["Active Directory", "Email"],
+                "severity_reported": "high",
+                "policy_implications": ["POL-001"]
+            }
+            """
+            try:
+                result = await process_ticket_request(
+                    ticket_data.get("ticket_id", "UNKNOWN"),
+                    ticket_data
+                )
+                return result
+            except Exception as e:
+                logger.error(f"Error processing ticket: {str(e)}")
+                raise HTTPException(status_code=500, detail=str(e))
+        
+        logger.info("Starting FastAPI HTTP server on 0.0.0.0:8000...")
+        await uvicorn.run(
+            app,
+            host="0.0.0.0",
+            port=8000
+        )
+        
+    except ImportError:
+        logger.warning("FastAPI not installed. Using simple async HTTP server.")
+        await simple_asyncio_server()
 
-1. Accept incoming IT support tickets
-2. Coordinate multi-agent analysis and processing
-3. Route tickets based on risk assessment
-4. Provide structured responses
 
-When you receive a ticket request:
-- Extract ticket details
-- Initiate the multi-agent workflow (analysis → risk assessment → routing)
-- Return comprehensive processing results including the risk level and routing decision
-
-Format all responses as structured data with clear decision paths and reasoning."""
+async def simple_asyncio_server():
+    """
+    Fallback simple async server when FastAPI is not available.
+    """
+    import asyncio
+    from aiohttp import web
     
-    agent = Agent(
-        client=client,
-        name="ITTicketOrchestrator",
-        instructions=instructions
-    )
+    async def health_handler(request):
+        """Health check endpoint."""
+        return web.json_response({
+            "status": "healthy",
+            "service": "IT Ticket Management System"
+        })
     
-    return agent
+    async def process_ticket_handler(request):
+        """Process ticket endpoint."""
+        try:
+            ticket_data = await request.json()
+            result = await process_ticket_request(
+                ticket_data.get("ticket_id", "UNKNOWN"),
+                ticket_data
+            )
+            return web.json_response(result)
+        except Exception as e:
+            logger.error(f"Error processing ticket: {str(e)}")
+            return web.json_response(
+                {"error": str(e)},
+                status=500
+            )
+    
+    # Create app
+    app = web.Application()
+    app.router.add_get("/health", health_handler)
+    app.router.add_post("/tickets/process", process_ticket_handler)
+    
+    # Start server
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, "0.0.0.0", 8000)
+    await site.start()
+    
+    logger.info("aiohttp server started on http://0.0.0.0:8000")
+    logger.info("Endpoints:")
+    logger.info("  GET /health - Health check")
+    logger.info("  POST /tickets/process - Process a ticket")
+    
+    # Keep running
+    try:
+        await asyncio.sleep(86400)  # Run for a day
+    except KeyboardInterrupt:
+        logger.info("Server shutdown requested")
+    finally:
+        await runner.cleanup()
 
 
 async def main():
     """
-    Main entry point - creates and runs the HTTP server.
+    Main entry point - creates and runs the server.
     """
-    logger.info("Initializing IT Ticket Management System...")
+    logger.info("=" * 80)
+    logger.info("IT TICKET MANAGEMENT SYSTEM - OPENROUTER VERSION")
+    logger.info("=" * 80)
     
     try:
-        # Create the main agent
-        agent = await create_agent()
-        logger.info("Agent created successfully")
+        # Create orchestrator agent
+        agent = await create_orchestrator_agent()
+        logger.info("✓ Orchestrator agent created successfully")
         
-        # Wrap with hosting adapter and start HTTP server
-        logger.info("Starting HTTP server on port 8000...")
-        await from_agent_framework(agent).run_async()
+        # Start server
+        logger.info("Starting HTTP server...")
+        await simple_asyncio_server()
         
     except Exception as e:
-        logger.error(f"Failed to start server: {str(e)}")
+        logger.error(f"Fatal error: {str(e)}")
         raise
 
 

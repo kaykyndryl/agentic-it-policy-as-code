@@ -133,7 +133,7 @@ agentic-it-policy-as-code/
 ### Prerequisites
 
 - Python 3.10 or higher
-- Azure Foundry project with deployed model
+- OpenRouter API key (free account at https://openrouter.ai)
 - VS Code with Python extension (for debugging)
 
 ### 1. Set Up Python Environment
@@ -154,30 +154,51 @@ which python  # Should show venv path
 
 ### 2. Install Dependencies
 
-Install packages in the correct order (agentserver first, then agent-framework):
-
 ```bash
 # Install from requirements.txt
 pip install -r requirements.txt
 ```
 
-### 3. Configure Foundry Access
+Dependencies include:
+- `openai>=1.3.0` - OpenAI-compatible client for OpenRouter
+- `python-dotenv` - Environment variable management
+- `aiohttp` - Async HTTP client/server library
+- `pydantic` - Data validation
 
-Copy `.env.template` to `.env` and fill in your Foundry project details:
+### 3. Configure OpenRouter Access
+
+Get your free OpenRouter API key:
+
+1. Visit https://openrouter.ai
+2. Sign up and get your API key
+3. Copy `.env.template` to `.env`:
 
 ```bash
 cp .env.template .env
 ```
 
-Edit `.env` with your values:
+Edit `.env` and configure:
+
 ```env
-FOUNDRY_PROJECT_ENDPOINT=https://<your-region>.api.azureml.ms/foundry
-FOUNDRY_MODEL_DEPLOYMENT_NAME=<your-model-deployment>
+# OpenRouter AI Configuration
+OPENROUTER_API_KEY=your_api_key_here
+OPENROUTER_MODEL=openai/gpt-4-turbo
+OPENROUTER_BASE_URL=https://openrouter.io/api/v1
+
+# Application settings
+LOG_LEVEL=INFO
+DEBUG_MODE=false
 ```
+
+Available models at OpenRouter:
+- `openai/gpt-4-turbo` - Most capable
+- `openai/gpt-4` - Faster alternative
+- `anthropic/claude-3-opus` - Alternative provider
+- See https://openrouter.ai/models for full list
 
 ### 4. Test the System Locally
 
-Before deploying, test the workflow and tools:
+Test the agents and tools without cloud deployment:
 
 ```bash
 python test_local.py
@@ -189,9 +210,23 @@ This will:
 - Display risk assessments for sample tickets
 - Verify system readiness
 
+Sample output:
+```
+📊 Loaded 7 sample tickets
+📋 Loaded 8 IT policies
+1. POLICY LOOKUP TOOL
+   Policies found for 'multi-factor': 1 policies
+2. TICKET DATABASE TOOL
+   Retrieved ticket TKT-001: Password Reset Request
+3. RISK EVALUATION TOOL
+   Risk Score: 15, Risk Level: 1
+...
+✅ LOCAL TEST COMPLETE
+```
+
 ### 5. Run the HTTP Server
 
-Start the agent server for local testing:
+Start the multi-agent system:
 
 ```bash
 python -m src.main
@@ -199,31 +234,41 @@ python -m src.main
 
 The server will be available at `http://localhost:8000`
 
+Endpoints:
+- `GET /health` - Health check
+- `POST /tickets/process` - Process a ticket
+
+Example request:
+```bash
+curl -X POST http://localhost:8000/tickets/process \
+  -H "Content-Type: application/json" \
+  -d '{
+    "ticket_id": "TKT-001",
+    "title": "Password Reset Request",
+    "description": "User forgot their password",
+    "department": "Finance",
+    "affected_systems": ["Active Directory", "Email"],
+    "severity_reported": "high",
+    "policy_implications": ["POL-001"]
+  }'
+```
+
 ## 🔧 Development & Debugging
 
 ### VS Code Debug Configurations
 
-The project includes three debug configurations:
+The project includes two debug configurations in `.vscode/launch.json`:
 
-1. **Python: Run Main Server** - Start the HTTP server
-2. **Python: Run Local Test** - Run the test suite
-3. **Python: Debug with AI Toolkit Inspector** - Use Agent Inspector for interactive debugging
+1. **Python: Run Local Test** - Run the test suite
+2. **Python: Run Main Server** - Start the HTTP server
 
 #### Debug with F5
 
-Press `F5` to start debugging with the default configuration (Run Main Server).
-
-![Debug Flow](docs/debug-config.png)
-
-#### Using AI Toolkit Agent Inspector
-
-1. Install the AI Toolkit extension in VS Code
-2. Open the Command Palette (Cmd/Ctrl+Shift+P)
-3. Select "Agent Developer: Start Debugging with Inspector"
-4. The Agent Inspector panel will open showing:
-   - Agent communications
-   - Message flows between agents
-   - Tool invocations
+Press `F5` to start debugging. You'll see:
+- Console output from agents
+- Multi-agent workflow execution
+- Risk assessment scores
+- Routing decisions
    - Response traces
 
 ### Available VS Code Tasks
