@@ -76,24 +76,47 @@ class TicketProcessingWorkflow:
             # Stage 1: Analyze ticket
             logger.info(f"Stage 1: Analyzing ticket {ticket_id}")
             analysis = await self.analyzer.analyze_ticket(ticket_data)
+            
+            # Extract analysis content and identified policies
+            analysis_content = analysis.get("content") if isinstance(analysis, dict) else analysis
+            identified_policies = analysis.get("policy_ids", []) if isinstance(analysis, dict) else []
+            full_policies = analysis.get("identified_policies", []) if isinstance(analysis, dict) else []
+            
             result["stages"]["analysis"] = {
                 "status": "completed",
-                "content": analysis
+                "content": analysis_content,
+                "identified_policies": identified_policies,
+                "identified_policies_full": full_policies
             }
-            logger.info(f"Stage 1 completed for ticket {ticket_id}")
+            logger.info(f"Stage 1 completed for ticket {ticket_id} - Identified {len(identified_policies)} policies")
             
             # Stage 2: Assess risk
             logger.info(f"Stage 2: Assessing risk for ticket {ticket_id}")
             risk_assessment = await self.risk_assessor.assess_risk(
                 ticket_data,
-                analysis
+                analysis_content
             )
+            
+            # Build risk calculation breakdown
+            risk_calculation = {
+                "base_severity": ticket_data.get('severity_reported', 'medium').upper(),
+                "affected_systems_count": len(ticket_data.get('affected_systems', [])),
+                "affected_systems": ticket_data.get('affected_systems', []),
+                "policies_affected_count": len(identified_policies),
+                "policies_affected": identified_policies,
+                "policies_details": full_policies,
+                "has_critical_keywords": any(kw in str(ticket_data).lower() for kw in ['malware', 'breach', 'security', 'data exposure', 'unauthorized']),
+                "risk_score": risk_assessment.get("risk_score"),
+                "risk_level": risk_assessment.get("risk_level")
+            }
+            
             result["stages"]["risk_assessment"] = {
                 "status": "completed",
                 "risk_score": risk_assessment.get("risk_score"),
                 "risk_level": risk_assessment.get("risk_level"),
                 "classification": risk_assessment.get("classification"),
-                "reasoning": risk_assessment.get("reasoning")
+                "reasoning": risk_assessment.get("reasoning"),
+                "calculation_breakdown": risk_calculation
             }
             logger.info(
                 f"Stage 2 completed: Risk Level {risk_assessment.get('risk_level')} "

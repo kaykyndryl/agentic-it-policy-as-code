@@ -70,7 +70,7 @@ async def create_orchestrator_agent():
     """
     # Get OpenRouter configuration
     api_key = os.getenv("OPENROUTER_API_KEY")
-    model = os.getenv("OPENROUTER_MODEL", "openai/gpt-4-turbo")
+    model = os.getenv("OPENROUTER_MODEL", "nemetron/nemetron-3-super")
     base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.io/api/v1")
     
     if not api_key:
@@ -153,51 +153,293 @@ async def simple_asyncio_server():
     import asyncio
     from aiohttp import web
     
+    # HTML web UI
+    WEB_UI = """<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Ticket Management System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; color: white; margin-bottom: 40px; }
+        header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        header p { font-size: 1.1em; opacity: 0.9; }
+        .main { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        .form-section, .results-section { background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); padding: 30px; }
+        .form-section h2, .results-section h2 { color: #667eea; margin-bottom: 20px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; color: #333; font-weight: 600; margin-bottom: 8px; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 1em; font-family: inherit; }
+        input:focus, select:focus, textarea:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        textarea { resize: vertical; min-height: 80px; }
+        .systems-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        .checkbox { display: flex; align-items: center; }
+        .checkbox input { width: auto; margin-right: 8px; }
+        .checkbox label { margin: 0; font-weight: normal; }
+        button { background: #667eea; color: white; padding: 12px 30px; border: none; border-radius: 5px; font-size: 1em; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        button:hover { background: #764ba2; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+        .loading { display: none; color: #667eea; text-align: center; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .result { margin-top: 20px; padding: 20px; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 0.9em; max-height: 500px; overflow-y: auto; background: #f5f5f5; }
+        .result.success { background: #e8f5e9; border-left: 4px solid #4caf50; }
+        .result.error { background: #ffebee; border-left: 4px solid #f44336; }
+        .result-title { font-weight: bold; color: #333; margin-bottom: 10px; }
+        .policies { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .policy-item { display: flex; align-items: center; }
+        .policy-item input { width: auto; margin-right: 8px; }
+        .policy-item label { margin: 0; font-weight: normal; }
+        @media (max-width: 900px) { .main { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎫 IT Ticket Management System</h1>
+            <p>Multi-Agent Policy-Driven Ticket Routing</p>
+        </header>
+        
+        <div class="main">
+            <div class="form-section">
+                <h2>Submit Ticket</h2>
+                <form id="ticketForm">
+                    <div class="form-group">
+                        <label for="ticketId">Ticket ID:</label>
+                        <input type="text" id="ticketId" value="TKT-001" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="title">Title:</label>
+                        <input type="text" id="title" placeholder="e.g., Password Reset Request" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea id="description" placeholder="Describe the issue..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department">Department:</label>
+                        <select id="department" required>
+                            <option value="">Select Department</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Sales">Sales</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Operations">Operations</option>
+                            <option value="HR">HR</option>
+                            <option value="Security">Security</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Affected Systems:</label>
+                        <div class="systems-group">
+                            <div class="checkbox">
+                                <input type="checkbox" id="sys1" value="Active Directory">
+                                <label for="sys1">Active Directory</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="sys2" value="Email">
+                                <label for="sys2">Email</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="sys3" value="VPN">
+                                <label for="sys3">VPN</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="sys4" value="MFA">
+                                <label for="sys4">MFA</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="sys5" value="Database">
+                                <label for="sys5">Database</label>
+                            </div>
+                            <div class="checkbox">
+                                <input type="checkbox" id="sys6" value="Endpoints">
+                                <label for="sys6">Endpoints</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="severity">Severity:</label>
+                        <select id="severity" required>
+                            <option value="">Select Severity</option>
+                            <option value="low">Low</option>
+                            <option value="medium">Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Policy Implications:</label>
+                        <div class="policies">
+                            <div class="policy-item"><input type="checkbox" value="POL-001"> <label>Password Mgmt</label></div>
+                            <div class="policy-item"><input type="checkbox" value="POL-002"> <label>MFA</label></div>
+                            <div class="policy-item"><input type="checkbox" value="POL-003"> <label>Data Classification</label></div>
+                            <div class="policy-item"><input type="checkbox" value="POL-004"> <label>Patch Mgmt</label></div>
+                            <div class="policy-item"><input type="checkbox" value="POL-005"> <label>Access Control</label></div>
+                            <div class="policy-item"><input type="checkbox" value="POL-006"> <label>Device Mgmt</label></div>
+                            <div class="policy-item"><input type="checkbox" value="POL-007"> <label>Incident Response</label></div>
+                            <div class="policy-item"><input type="checkbox" value="POL-008"> <label>Acceptable Use</label></div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit">Process Ticket</button>
+                </form>
+            </div>
+            
+            <div class="results-section">
+                <h2>Analysis Results</h2>
+                <div id="loadingSpinner" class="loading">
+                    <div class="spinner"></div>
+                    <p>Processing ticket...</p>
+                </div>
+                <div id="results"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.getElementById('ticketForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Collect form data
+            const systems = Array.from(document.querySelectorAll('.systems-group input[type="checkbox"]:checked')).map(cb => cb.value);
+            const policies = Array.from(document.querySelectorAll('.policies input[type="checkbox"]:checked')).map(cb => cb.value);
+            
+            const ticketData = {
+                ticket_id: document.getElementById('ticketId').value,
+                title: document.getElementById('title').value,
+                description: document.getElementById('description').value,
+                department: document.getElementById('department').value,
+                affected_systems: systems,
+                severity_reported: document.getElementById('severity').value,
+                policy_implications: policies
+            };
+            
+            // Show loading
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('results').innerHTML = '';
+            
+            try {
+                const response = await fetch('/tickets/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(ticketData)
+                });
+                
+                const result = await response.json();
+                
+                // Hide loading
+                document.getElementById('loadingSpinner').style.display = 'none';
+                
+                // Display result
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result ' + (result.status === 'error' ? 'error' : 'success');
+                
+                if (result.status === 'error') {
+                    resultDiv.innerHTML = `<div class="result-title">❌ Error</div><pre>${JSON.stringify(result, null, 2)}</pre>`;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="result-title">✅ Ticket Processed</div>
+                        <div><strong>Ticket ID:</strong> ${result.ticket_id}</div>
+                        <div><strong>Status:</strong> ${result.status}</div>
+                        <div style="margin-top: 15px;"><strong>Final Action:</strong></div>
+                        <pre>${JSON.stringify(result.final_action, null, 2)}</pre>
+                    `;
+                }
+                
+                document.getElementById('results').appendChild(resultDiv);
+            } catch (error) {
+                document.getElementById('loadingSpinner').style.display = 'none';
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `<div class="result-title">❌ Connection Error</div><pre>${error.message}</pre>`;
+                document.getElementById('results').appendChild(resultDiv);
+            }
+        });
+    </script>
+</body>
+</html>"""
+    
+    async def web_ui_handler(request):
+        """Serve the web UI dashboard."""
+        return web.Response(text=WEB_UI, content_type='text/html')
+    
     async def health_handler(request):
         """Health check endpoint."""
-        return web.json_response({
+        response = web.json_response({
             "status": "healthy",
             "service": "IT Ticket Management System"
         })
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        return response
     
     async def process_ticket_handler(request):
         """Process ticket endpoint."""
         try:
+            # Handle CORS preflight
+            if request.method == 'OPTIONS':
+                response = web.Response()
+                response.headers['Access-Control-Allow-Origin'] = '*'
+                response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+                response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+                return response
+            
             # Parse JSON with error handling
             try:
                 ticket_data = await request.json()
             except Exception as e:
                 logger.error(f"Invalid JSON in request: {str(e)}")
-                return web.json_response(
+                response = web.json_response(
                     {"error": f"Invalid JSON: {str(e)[:100]}"},
                     status=400
                 )
+                response.headers['Access-Control-Allow-Origin'] = '*'
+                return response
             
             # Validate ticket data
             if not ticket_data or not isinstance(ticket_data, dict):
-                return web.json_response(
+                response = web.json_response(
                     {"error": "Request body must be a JSON object"},
                     status=400
                 )
+                response.headers['Access-Control-Allow-Origin'] = '*'
+                return response
             
             # Process ticket
             ticket_id = ticket_data.get("ticket_id", "UNKNOWN")
             logger.info(f"Processing ticket: {ticket_id}")
             
             result = await process_ticket_request(ticket_id, ticket_data)
-            return web.json_response(result)
+            response = web.json_response(result)
+            response.headers['Access-Control-Allow-Origin'] = '*'
+            response.headers['Access-Control-Allow-Methods'] = 'POST, OPTIONS'
+            return response
             
         except Exception as e:
             logger.error(f"Error processing ticket: {str(e)}", exc_info=True)
-            return web.json_response(
+            response = web.json_response(
                 {"error": f"Internal server error: {str(e)[:100]}"},
                 status=500
             )
+            response.headers['Access-Control-Allow-Origin'] = '*'
+            return response
     
     # Create app
     app = web.Application()
+    app.router.add_get("/", web_ui_handler)
     app.router.add_get("/health", health_handler)
     app.router.add_post("/tickets/process", process_ticket_handler)
+    app.router.add_options("/tickets/process", process_ticket_handler)
     
     # Start server
     runner = web.AppRunner(app)
@@ -207,8 +449,11 @@ async def simple_asyncio_server():
     
     logger.info("aiohttp server started on http://0.0.0.0:8000")
     logger.info("Endpoints:")
+    logger.info("  GET / - Web UI Dashboard")
     logger.info("  GET /health - Health check")
     logger.info("  POST /tickets/process - Process a ticket")
+    logger.info("")
+    logger.info("🌐 Open your browser to: http://localhost:8000/")
     
     # Keep running
     try:

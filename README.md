@@ -79,6 +79,184 @@ User submits ticket: "Can't connect to VPN - MFA not working"
 - Examples: Malware detection, unauthorized data sharing, breach indicators
 - Action: Immediate escalation to SOC and management
 
+## 🧠 AI Risk Analysis Engine
+
+### OpenRouter AI Integration
+
+The system uses **OpenRouter AI** to power intelligent risk analysis and decision-making across three specialized agents:
+
+#### 1. **TicketAnalyzerAgent** (Policy Compliance Analysis)
+- **AI Model**: OpenRouter (nemetron-3-super, gpt-4-turbo, or claude-3)
+- **Temperature**: 0.7 (balanced analysis)
+- **Function**: 
+  - Analyzes tickets against corporate IT policies
+  - Extracts key information (title, description, affected systems)
+  - Identifies relevant policies and compliance risks
+  - Provides structured compliance assessment
+
+#### 2. **RiskAssessmentAgent** (Risk Scoring & Classification)
+- **AI Model**: OpenRouter (nemetron-3-super, gpt-4-turbo, or claude-3)
+- **Temperature**: 0.3 (precise, deterministic scoring)
+- **Function**:
+  - Evaluates ticket severity using intelligent risk scoring
+  - Computes risk score from 0-100 based on multiple factors
+  - Classifies tickets into risk levels (1, 2, or 3)
+  - Provides reasoning for risk assignment
+
+#### 3. **RoutingAgent** (Action Determination)
+- **AI Model**: OpenRouter (nemetron-3-super, gpt-4-turbo, or claude-3)
+- **Temperature**: 0.5 (balanced decision making)
+- **Function**:
+  - Routes tickets to appropriate teams or automated remediation
+  - For Level 1: Generates automated remediation steps
+  - For Level 2-3: Assigns support teams and escalation requirements
+  - Specifies priority levels and required information
+
+### Risk Score Calculation
+
+The **RiskAssessmentAgent** computes risk scores using AI-driven analysis of multiple factors:
+
+#### Base Severity Score
+| Severity | Points |
+|----------|--------|
+| Low | 10 |
+| Medium | 30 |
+| High | 60 |
+| Critical | 80 |
+
+#### AI-Enhanced Adjustments
+| Factor | Adjustment | Example |
+|--------|-----------|---------|
+| Critical Keywords | +20 | "malware", "breach", "security", "data exposure", "unauthorized access" |
+| Policy Complexity | +10 | When 2+ policies are affected |
+| System Criticality | +5 | Database, VLAN, directory services, email, VPN |
+
+#### Risk Level Assignment
+```
+Risk Score 0-34   → Level 1 (Low) - Automated Solution Available
+Risk Score 35-64  → Level 2 (Medium) - Specialist Review Required
+Risk Score 65-100 → Level 3 (High) - Escalation Required
+```
+
+### AI Workflow Visualization
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ 📋 IT Support Ticket                                                │
+│ (ID | Title | Description | Department | Severity | Systems)       │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│ 🔍 STAGE 1: Policy Analysis (TicketAnalyzerAgent)                   │
+│ ├─ OpenRouter AI Processing                                         │
+│ ├─ Extracts ticket information                                      │
+│ ├─ Matches relevant IT policies                                     │
+│ └─ Assesses policy compliance risks                                 │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+                         ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│ ⚠️ STAGE 2: Risk Assessment (RiskAssessmentAgent)                   │
+│ ├─ OpenRouter AI Processing (Temperature: 0.3 for precision)        │
+│ ├─ Calculate Base Severity Score                                    │
+│ ├─ Apply AI-Enhanced Adjustments                                    │
+│ │  ├─ Keyword Analysis (+20 for critical terms)                     │
+│ │  ├─ Policy Impact (+10 if multiple policies)                      │
+│ │  └─ System Criticality (+5 for critical infrastructure)           │
+│ └─ Assign Risk Level (1, 2, or 3)                                   │
+└────────────────────────┬────────────────────────────────────────────┘
+                         │
+          ┌──────────────┼──────────────┐
+          │              │              │
+          ▼              ▼              ▼
+    ┌─────────────┐ ┌─────────────┐ ┌──────────────┐
+    │ Level 1:    │ │ Level 2:    │ │ Level 3:     │
+    │ LOW RISK    │ │ MEDIUM RISK │ │ HIGH RISK    │
+    │ (< 35)      │ │ (35-65)     │ │ (> 65)       │
+    └──────┬──────┘ └──────┬──────┘ └──────┬───────┘
+           │               │               │
+           ▼               ▼               ▼
+    ┌──────────────────────────────────────────────────┐
+    │ 🚦 STAGE 3: Routing & Action (RoutingAgent)      │
+    │ ├─ OpenRouter AI Processing                      │
+    │ └─ Determine appropriate action                  │
+    └────────────┬─────────────────────────────────────┘
+                 │
+    ┌────────────┼─────────────────┐
+    │            │                 │
+    ▼            ▼                 ▼
+┌─────────────┐ ┌──────────────┐ ┌──────────────────┐
+│ ⚙️ AUTOMATED │ │ 👥 SPECIALIST│ │ 🚨 ESCALATION   │
+│ REMEDIATION │ │ TEAM REVIEW  │ │ & INCIDENT      │
+├─────────────┤ ├──────────────┤ │ RESPONSE        │
+│• Password   │ │• IT Support  │ ├──────────────────┤
+│  Reset      │ │• Security    │ │• SOC + Incident  │
+│• Standard   │ │  Team        │ │  Response Team   │
+│  Troublesh  │ │• Identity    │ │• Forensic        │
+│  Time: 5-10 │ │  Team        │ │  Analysis        │
+│  minutes    │ │• Priority:   │ │• Compliance      │
+│             │ │  Med/High    │ │  Notification    │
+└─────────────┘ └──────────────┘ │• Priority:       │
+                                 │  CRITICAL        │
+                                 └──────────────────┘
+                                        │
+                                        ▼
+                                  ┌──────────────┐
+                                  │ ✅ Action    │
+                                  │    Executed  │
+                                  └──────────────┘
+```
+
+### AI Model Configuration
+
+The system is configured to use OpenRouter AI models via OpenAI-compatible API:
+
+```python
+# Default Configuration
+OPENROUTER_MODEL = "nemetron/nemetron-3-super"  # Cost-effective, fast
+OPENROUTER_BASE_URL = "https://openrouter.io/api/v1"
+
+# Temperature Settings (for determinism vs creativity)
+TicketAnalyzerAgent.temperature = 0.7      # Balanced analysis
+RiskAssessmentAgent.temperature = 0.3      # Precise scoring
+RoutingAgent.temperature = 0.5             # Balanced decisions
+
+# Token Limits
+TicketAnalyzerAgent.max_tokens = 1000      # Detailed analysis
+RiskAssessmentAgent.max_tokens = 500       # Concise scoring
+RoutingAgent.max_tokens = 600              # Action specification
+```
+
+### Fallback System (Offline Support)
+
+If OpenRouter API is unavailable, the system automatically falls back to **DemoAgents** with rule-based logic, ensuring 100% uptime:
+
+```python
+# In src/agents.py create_agents() function
+try:
+    # Try OpenRouter AI
+    client = get_openrouter_client()
+    # Verify connectivity...
+    return (
+        TicketAnalyzerAgent(client),      # AI-powered
+        RiskAssessmentAgent(client),      # AI-powered
+        RoutingAgent(client)              # AI-powered
+    )
+except Exception:
+    # Fallback to deterministic logic
+    from src.demo_agents import (
+        DemoTicketAnalyzerAgent,
+        DemoRiskAssessmentAgent,
+        DemoRoutingAgent
+    )
+    return (
+        DemoTicketAnalyzerAgent(),        # Rule-based
+        DemoRiskAssessmentAgent(),        # Rule-based
+        DemoRoutingAgent()                # Rule-based
+    )
+```
+
 ### Built-in IT Policy Framework
 
 8 comprehensive corporate IT policies govern all decisions:

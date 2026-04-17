@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IT Ticket Management System - Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #666;
+            font-size: 16px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .status.ready {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status.demo {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        .result {
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+        }
+        
+        .result-item strong {
+            color: #333;
+        }
+        
+        .risk-level-1 {
+            border-left-color: #28a745;
+        }
+        
+        .risk-level-2 {
+            border-left-color: #ffc107;
+        }
+        
+        .risk-level-3 {
+            border-left-color: #dc3545;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .badge.level-1 {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .badge.level-2 {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .badge.level-3 {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading {
+            display: none;
+        }
+        
+        .ticket-samples {
+            margin-top: 20px;
+        }
+        
+        .ticket-samples h3 {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        
+        .sample-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #ddd;
+            padding: 10px 15px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-block;
+            width: auto;
+            transition: all 0.2s;
+        }
+        
+        .sample-btn:hover {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .responsive {
+            @media (max-width: 768px) {
+                .content {
+                    grid-template-columns: 1fr;
+                }
+            }
+        }
+        
+        .help-text {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container responsive">
+        <header>
+            <h1>🎫 IT Ticket Management System</h1>
+            <p>Multi-agent AI system for policy-driven ticket analysis and routing</p>
+            <div>
+                <span class="status ready">✅ WEB SERVER READY - Visit http://localhost:8000</span>
+            </div>
+        </header>
+        
+        <div class="content">
+            <!-- Form Panel -->
+            <div class="panel">
+                <h2>📝 Submit Ticket</h2>
+                
+                <form id="ticketForm">
+                    <div class="form-group">
+                        <label for="ticketId">Ticket ID</label>
+                        <input type="text" id="ticketId" value="TKT-001" placeholder="e.g., TKT-001">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="title">Title *</label>
+                        <input type="text" id="title" required placeholder="e.g., Password Reset Request">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" placeholder="Detailed description of the issue"></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <input type="text" id="department" placeholder="e.g., Finance">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="severity">Severity</label>
+                        <select id="severity">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                            <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="systems">Affected Systems</label>
+                        <input type="text" id="systems" placeholder="e.g., Active Directory, Email">
+                        <div class="help-text">Comma-separated list</div>
+                    </div>
+                    
+                    <button type="submit">
+                        <span class="loading"><span class="spinner"></span>Processing...</span>
+                        <span class="submit-text">🚀 Process Ticket</span>
+                    </button>
+                </form>
+                
+                <div class="ticket-samples">
+                    <h3>Quick Examples:</h3>
+                    <button class="sample-btn" onclick="loadSample('password')">🔐 Password Reset</button>
+                    <button class="sample-btn" onclick="loadSample('vpn')">🔒 VPN/MFA Issue</button>
+                    <button class="sample-btn" onclick="loadSample('malware')">⚠️ Security Alert</button>
+                </div>
+            </div>
+            
+            <!-- Results Panel -->
+            <div class="panel">
+                <h2>📊 Analysis Results</h2>
+                <div id="results">
+                    <p style="color: #999; text-align: center; margin-top: 40px;">
+                        Submit a ticket to see analysis results
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Sample tickets
+        const samples = {
+            password: {
+                title: "Password Reset Request",
+                description: "User forgot their password and cannot access their work account",
+                department: "Finance",
+                severity: "high",
+                systems: "Active Directory, Email"
+            },
+            vpn: {
+                title: "Cannot Access VPN - MFA Issues",
+                description: "Employee reports repeated MFA failures when connecting to corporate VPN",
+                department: "Engineering",
+                severity: "critical",
+                systems: "VPN, MFA"
+            },
+            malware: {
+                title: "Suspicious Email Download - Potential Malware",
+                description: "User received suspicious email and downloaded attachment, antivirus triggered alerts",
+                department: "Sales",
+                severity: "critical",
+                systems: "Endpoints, Email"
+            }
+        };
+        
+        function loadSample(type) {
+            const sample = samples[type];
+            document.getElementById("title").value = sample.title;
+            document.getElementById("description").value = sample.description;
+            document.getElementById("department").value = sample.department;
+            document.getElementById("severity").value = sample.severity;
+            document.getElementById("systems").value = sample.systems;
+        }
+        
+        document.getElementById("ticketForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const ticketData = {
+                ticket_id: document.getElementById("ticketId").value || null,
+                title: document.getElementById("title").value,
+                description: document.getElementById("description").value,
+                department: document.getElementById("department").value,
+                affected_systems: document.getElementById("systems").value.split(",").map(s => s.trim()).filter(s => s),
+                severity_reported: document.getElementById("severity").value,
+                policy_implications: []
+            };
+            
+            // Show loading
+            document.querySelector(".loading").style.display = "inline";
+            document.querySelector(".submit-text").style.display = "none";
+            document.querySelector("button").disabled = true;
+            
+            try {
+                const response = await fetch("/api/tickets/process", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(ticketData)
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || `HTTP ${response.status}`);
+                }
+                
+                const result = await response.json();
+                displayResults(result);
+            } catch (error) {
+                const resultsDiv = document.getElementById("results");
+                resultsDiv.innerHTML = `
+                    <div class="result-item" style="border-left-color: #dc3545;">
+                        <strong style="color: #dc3545;">❌ Error:</strong><br>
+                        ${error.message}
+                        <br><br>
+                        <em>Make sure the server is running:<br>
+                        <code style="background: #f0f0f0; padding: 5px; display: inline-block;">python app.py</code></em>
+                    </div>
+                `;
+            } finally {
+                document.querySelector(".loading").style.display = "none";
+                document.querySelector(".submit-text").style.display = "inline";
+                document.querySelector("button").disabled = false;
+            }
+        });
+        
+        function displayResults(result) {
+            const resultsDiv = document.getElementById("results");
+            const riskLevel = result.final_action?.risk_level || result.stages?.risk_assessment?.risk_level || 2;
+            const riskScore = result.stages?.risk_assessment?.risk_score || 50;
+            const classification = result.final_action?.classification || result.stages?.risk_assessment?.classification || `Level ${riskLevel}`;
+            
+            let html = `
+                <div class="result">
+                    <h3>🎫 Ticket: ${result.ticket_id} <span class="badge level-${riskLevel}">Risk Level ${riskLevel}</span></h3>
+                    
+                    <div class="result-item risk-level-${riskLevel}">
+                        <strong>📊 Risk Assessment Summary</strong><br>
+                        <strong>Classification:</strong> ${classification}<br>
+                        <strong>Risk Score:</strong> <span style="font-size: 20px; font-weight: bold; color: ${riskScore > 65 ? '#dc3545' : riskScore > 35 ? '#ff9800' : '#28a745'}">${riskScore}</span>/100
+                    </div>
+            `;
+            
+            // Risk Calculation Breakdown
+            const breakdown = result.stages?.risk_assessment?.calculation_breakdown;
+            if (breakdown) {
+                html += `
+                    <div class="result-item" style="background: #f5f5f5;">
+                        <strong>📈 Risk Score Calculation</strong><br>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px;"><strong>Factor</strong></td>
+                                <td style="padding: 8px; text-align: right;"><strong>Value</strong></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px;">📋 Severity Reported</td>
+                                <td style="padding: 8px; text-align: right;"><strong>${breakdown.base_severity}</strong></td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px;">💻 Affected Systems</td>
+                                <td style="padding: 8px; text-align: right;"><strong>${breakdown.affected_systems_count}</strong> system(s)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px;">📜 Policies Affected</td>
+                                <td style="padding: 8px; text-align: right;"><strong>${breakdown.policies_affected_count}</strong> policy(ies)</td>
+                            </tr>
+                            <tr style="border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px;">⚠️ Critical Keywords</td>
+                                <td style="padding: 8px; text-align: right;"><strong>${breakdown.has_critical_keywords ? '✓ Detected' : '✗ None'}</strong></td>
+                            </tr>
+                            <tr style="background: #e8f4f8; border-bottom: 1px solid #ddd;">
+                                <td style="padding: 8px;"><strong>⚡ Final Risk Score</strong></td>
+                                <td style="padding: 8px; text-align: right;"><strong style="font-size: 14px;">${riskScore}/100</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
+            }
+            
+            // Systems and Policies Info
+            if (breakdown?.affected_systems.length > 0 || breakdown?.policies_affected.length > 0) {
+                html += `<div class="result-item" style="background: #f9f9f9;">`;
+                
+                if (breakdown?.affected_systems.length > 0) {
+                    html += `
+                        <strong>💻 Affected Systems:</strong><br>
+                        <div style="margin-left: 10px;">
+                            ${breakdown.affected_systems.map(s => `<span style="display: inline-block; background: #e3f2fd; padding: 4px 8px; margin: 3px; border-radius: 3px; font-size: 12px;">🖥️ ${s}</span>`).join('')}
+                        </div><br>
+                    `;
+                }
+                
+                if (breakdown?.policies_affected.length > 0) {
+                    html += `
+                        <strong>📜 Identified Policies (${breakdown.policies_affected_count}):</strong><br>
+                        <div style="margin-left: 10px;">
+                            ${breakdown.policies_affected.map(p => `<span style="display: inline-block; background: #fff3e0; padding: 4px 8px; margin: 3px; border-radius: 3px; font-size: 12px;">📋 ${p}</span>`).join('')}
+                        </div><br>
+                    `;
+                }
+                
+                // Policy Details
+                if (breakdown?.policies_details && breakdown.policies_details.length > 0) {
+                    html += `<strong>📜 Policy Details:</strong><br>`;
+                    breakdown.policies_details.forEach(policy => {
+                        html += `
+                            <div style="margin-left: 15px; margin-top: 8px; padding: 10px; background: #f5f5f5; border-radius: 3px; border-left: 3px solid #ff9800;">
+                                <strong>${policy.id} - ${policy.title}</strong><br>
+                                <em style="color: #666;">${policy.description}</em><br>
+                                <strong>Category:</strong> ${policy.category} | 
+                                <strong>Enforcement:</strong> ${policy.enforcement}<br>
+                                <strong>Key Requirements:</strong>
+                                <ul style="margin: 5px 0; padding-left: 20px;">
+                                    ${policy.key_requirements.map(req => `<li style="font-size: 12px;">${req}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    });
+                    html += `<br>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            // AI Analysis & Reasoning
+            if (result.stages?.risk_assessment?.reasoning) {
+                html += `
+                    <div class="result-item" style="background: #f0f7ff;">
+                        <strong>🧠 AI Analysis & Reasoning</strong><br>
+                        <em>${result.stages.risk_assessment.reasoning}</em>
+                    </div>
+                `;
+            }
+            
+            if (result.stages?.analysis?.content) {
+                html += `
+                    <div class="result-item" style="background: #fafafa; border-left: 3px solid #2196F3;">
+                        <strong>📋 Detailed Ticket Analysis</strong><br>
+                        <div style="margin-top: 8px; font-size: 13px; line-height: 1.6;">
+                            ${result.stages.analysis.content}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Recommended Actions
+            if (result.final_action?.routing) {
+                html += `
+                    <div class="result-item" style="background: #f1f8e9; border-left: 3px solid #4caf50;">
+                        <strong>🎯 Recommended Actions</strong><br>
+                `;
+                
+                const routing = result.final_action.routing;
+                
+                if (routing.automation_type) {
+                    html += `
+                        <div style="margin-top: 8px;">
+                            <strong>⚙️ Automation Type:</strong> ${routing.automation_type}<br>
+                            <strong>⏱️ Estimated Time:</strong> ${routing.estimated_time_minutes} minutes<br>
+                            <strong>✅ Success Criteria:</strong> ${routing.success_criteria}<br>
+                            <strong>📝 Steps:</strong><ol style="margin: 8px 0;">
+                                ${routing.steps.map(s => `<li>${s}</li>`).join("")}
+                            </ol>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div style="margin-top: 8px;">
+                            <strong>👥 Assign to Team:</strong> <span style="background: #e8f5e9; padding: 4px 8px; border-radius: 3px; font-weight: bold;">${routing.assigned_team}</span><br>
+                            <strong>🔴 Priority:</strong> <span style="background: ${routing.priority === 'critical' ? '#dc3545' : routing.priority === 'high' ? '#ff9800' : '#ffeb3b'}; color: ${routing.priority === 'critical' ? 'white' : 'black'}; padding: 3px 8px; border-radius: 3px; font-weight: bold;">${routing.priority.toUpperCase()}</span><br>
+                            <strong>⚠️ Escalation Required:</strong> ${routing.escalation_required ? '✓ YES' : '✗ NO'}<br>
+                    `;
+                    
+                    if (routing.automation_agents) {
+                        html += `<strong>🤖 Automation Agents:</strong><ul style="margin: 5px 0; padding-left: 20px;">`;
+                        routing.automation_agents.forEach(agent => html += `<li>${agent}</li>`);
+                        html += `</ul>`;
+                    }
+                    
+                    if (routing.required_info) {
+                        html += `<strong>📋 Required Information:</strong><ul style="margin: 5px 0; padding-left: 20px;">`;
+                        routing.required_info.forEach(i => html += `<li>${i}</li>`);
+                        html += `</ul>`;
+                    }
+                    
+                    if (routing.immediate_actions) {
+                        html += `<strong>🚨 Immediate Actions (CRITICAL):</strong><ul style="margin: 5px 0; padding-left: 20px;">`;
+                        routing.immediate_actions.forEach(i => html += `<li>${i}</li>`);
+                        html += `</ul>`;
+                    }
+                    
+                    html += `</div>`;
+                }
+                
+                html += `</div>`;
+            }
+            
+            html += `<p style="color: #999; font-size: 12px; margin-top: 15px;">
+                ⏰ Processed: ${new Date(result.timestamp).toLocaleString()}<br>
+                📋 Status: ${result.status}
+            </p></div>`;
+            
+            resultsDiv.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
