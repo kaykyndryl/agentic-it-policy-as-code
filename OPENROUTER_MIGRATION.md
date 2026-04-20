@@ -53,7 +53,7 @@ FOUNDRY_MODEL_DEPLOYMENT_NAME=your-model-deployment-name
 
 **After:**
 ```env
-OPENROUTER_API_KEY=REDACTED_API_KEY
+OPENROUTER_API_KEY=<your-openrouter-api-key>
 OPENROUTER_MODEL=openai/gpt-4-turbo
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 ```
