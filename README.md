@@ -210,7 +210,7 @@ Risk Score 65-100 → Level 3 (High) - Escalation Required
 
 ### AI Model Configuration
 
-The system is configured to use OpenRouter AI models via OpenAI-compatible API:
+The system is configured to use OpenRouter AI with NVidia Nemotron 3 Super via standard API client:
 
 ```python
 # Default Configuration
@@ -338,7 +338,7 @@ pip install -r requirements.txt
 ```
 
 Dependencies include:
-- `openai>=1.3.0` - OpenAI-compatible client for OpenRouter
+- `openai>=1.3.0` - Standard API client for OpenRouter (NVidia Nemotron 3 Super)
 - `python-dotenv` - Environment variable management
 - `aiohttp` - Async HTTP client/server library
 - `pydantic` - Data validation
@@ -370,9 +370,11 @@ DEBUG_MODE=false
 
 Available models at OpenRouter:
 - `nemetron/nemetron-3-super` - NVidia Nemotron 3 Super (⭐ Primary - recommended)
-- ~~`openai/gpt-4-turbo`~~ - (Alternative, requires separate API key)
-- ~~`openai/gpt-4`~~ - (Alternative, requires separate API key)
-- `anthropic/claude-3-opus` - Alternative provider
+- `nemetron/nemetron-3-super` - NVidia Nemotron 3 Super (primary, recommended)
+# Alternative providers (not recommended for this system):
+# - ~~`openai/gpt-4-turbo`~~ - (Alternative, requires separate API key)
+# - ~~`openai/gpt-4`~~ - (Alternative, requires separate API key)
+# - ~~`anthropic/claude-3-opus`~~ - (Alternative, not recommended)
 - See https://openrouter.ai/models for full list
 
 ### 4. Test the System Locally

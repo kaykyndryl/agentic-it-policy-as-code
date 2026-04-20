@@ -2,7 +2,7 @@
 IT Ticket Management System - HTTP Server
 
 Main entry point for the multi-agent IT ticket management system.
-Uses OpenRouter AI (OpenAI-compatible API) for agent execution.
+Uses OpenRouter AI (NVidia Nemotron 3 Super) via standard API client.
 Hosts the workflow as an HTTP service via FastAPI.
 """
 

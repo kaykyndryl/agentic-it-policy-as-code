@@ -24,7 +24,7 @@ agentic-it-policy-as-code/
 │
 ├── .env                     # Configuration with OpenRouter API key ✓
 ├── agent.yaml              # Workflow configuration
-├── requirements.txt        # Dependencies (openai, aiohttp, pydantic, etc.)
+├── requirements.txt        # Dependencies (standard API client, aiohttp, pydantic, etc.)
 ├── test_local.py          # Local testing script
 └── README.md              # Complete documentation
 ```
@@ -35,7 +35,7 @@ Your system now uses **OpenRouter AI** instead of Azure Foundry:
 
 | Component | Before | Now |
 |-----------|--------|-----|
-| AI Client | `FoundryChatClient` | `AsyncOpenAI` |
+| AI Client | `FoundryChatClient` | `AsyncOpenAI` (OpenRouter API client) |
 | Authentication | Azure credentials | OpenRouter API key |
 | API Endpoint | Azure AI Foundry | OpenRouter (`openrouter.io/api/v1`) |
 | Setup Complexity | Complex Foundry setup | Free OpenRouter account |
@@ -149,6 +149,7 @@ Edit `.env` to try different models:
 OPENROUTER_MODEL=nemetron/nemetron-3-super
 
 # Alternative models (commented - requires own API keys)
+# Alternative models (not supported for this system):
 # OPENROUTER_MODEL=openai/gpt-4-turbo
 # OPENROUTER_MODEL=anthropic/claude-3-opus
 
@@ -356,7 +357,7 @@ $ python -m src.main
 **Installed Packages:**
 - agent-framework-core==1.0.0rc6 ✓
 - agent-framework-foundry==1.0.0rc6 ✓
-- agent-framework-openai==1.0.0rc6 ✓
+- agent-framework-openai==1.0.0rc6 ✓ (Replaced by standard API client)
 - azure-ai-agentserver-agentframework==1.0.0b16 ✓
 - azure-ai-agentserver-core==1.0.0b16 ✓
 - agent-dev-cli==0.0.1b260316 ✓

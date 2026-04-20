@@ -8,7 +8,7 @@ Successfully migrated the IT Ticket Management System from **Azure Foundry** to 
 
 ✅ **No Azure setup needed** - Foundry was not available  
 ✅ **Free account** - Get started immediately at https://openrouter.ai  
-✅ **OpenAI-compatible** - Same API format, powered by NVidia Nemotron 3 Super (with support for other providers)  
+✅ **Compatible API** - Uses standard API client, powered by NVidia Nemotron 3 Super  
 ✅ **Instant deployment** - No infrastructure to provision  
 ✅ **Live immediately** - Start processing tickets right away  
 
@@ -85,9 +85,9 @@ class TicketAnalyzerAgent:
             return str(response)
 ```
 
-**After (OpenRouter/OpenAI-compatible):**
+**After (OpenRouter with NVidia Nemotron 3 Super):**
 ```python
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI  # Standard API client library
 
 def get_openrouter_client() -> AsyncOpenAI:
     api_key = os.getenv("OPENROUTER_API_KEY")
@@ -113,9 +113,9 @@ class TicketAnalyzerAgent:
 
 **Changes:**
 - ✅ Simpler API (no Agent framework)
-- ✅ Direct chat.completions calls
+- ✅ Direct chat completions calls (NVidia Nemotron 3 Super)
 - ✅ Better error handling
-- ✅ More familiar OpenAI format
+- ✅ More familiar standard API format
 
 ### 4. HTTP Server (`src/main.py`)
 
@@ -237,7 +237,10 @@ OPENROUTER_MODEL=nemetron/nemetron-3-super
 
 ### Alternative Models
 ```env
-# OpenAI alternatives (requires API key)
+# Primary model (NVidia Nemotron 3 Super)
+OPENROUTER_MODEL=nemetron/nemetron-3-super
+
+# Alternative providers (not supported for this system):
 # OPENROUTER_MODEL=openai/gpt-4-turbo
 # OPENROUTER_MODEL=openai/gpt-4
 # OPENROUTER_MODEL=openai/gpt-3.5-turbo
@@ -350,7 +353,7 @@ git checkout HEAD~1 -- requirements.txt src/agents.py
 | Infrastructure | Azure Foundry | OpenRouter (serverless) |
 | Monthly Cost | $100+ | $5-20 |
 | Dependencies | 1000+ MiB | 50 MiB |
-| API Complexity | Custom Agent Framework | Standard OpenAI |
+| API Complexity | Custom Agent Framework | Standard API Client (NVidia Nemotron 3 Super) |
 | Deployment | Azure-specific | Universal (Docker, FaaS, etc.) |
 | Model Switching | Requires redeployment | Change .env, restart |
 | **Status** | **Not Available** | **✓ Ready** |
