@@ -86,7 +86,7 @@ User submits ticket: "Can't connect to VPN - MFA not working"
 The system uses **OpenRouter AI** to power intelligent risk analysis and decision-making across three specialized agents:
 
 #### 1. **TicketAnalyzerAgent** (Policy Compliance Analysis)
-- **AI Model**: OpenRouter (nemetron-3-super, gpt-4-turbo, or claude-3)
+- **AI Model**: OpenRouter - NVidia Nemotron 3 Super ⭐ (primary model)
 - **Temperature**: 0.7 (balanced analysis)
 - **Function**: 
   - Analyzes tickets against corporate IT policies
@@ -95,7 +95,7 @@ The system uses **OpenRouter AI** to power intelligent risk analysis and decisio
   - Provides structured compliance assessment
 
 #### 2. **RiskAssessmentAgent** (Risk Scoring & Classification)
-- **AI Model**: OpenRouter (nemetron-3-super, gpt-4-turbo, or claude-3)
+- **AI Model**: OpenRouter - NVidia Nemotron 3 Super ⭐ (primary model)
 - **Temperature**: 0.3 (precise, deterministic scoring)
 - **Function**:
   - Evaluates ticket severity using intelligent risk scoring
@@ -104,7 +104,7 @@ The system uses **OpenRouter AI** to power intelligent risk analysis and decisio
   - Provides reasoning for risk assignment
 
 #### 3. **RoutingAgent** (Action Determination)
-- **AI Model**: OpenRouter (nemetron-3-super, gpt-4-turbo, or claude-3)
+- **AI Model**: OpenRouter - NVidia Nemotron 3 Super ⭐ (primary model)
 - **Temperature**: 0.5 (balanced decision making)
 - **Function**:
   - Routes tickets to appropriate teams or automated remediation
@@ -360,7 +360,7 @@ Edit `.env` and configure:
 ```env
 # OpenRouter AI Configuration
 OPENROUTER_API_KEY=your_api_key_here
-OPENROUTER_MODEL=openai/gpt-4-turbo
+OPENROUTER_MODEL=nemetron/nemetron-3-super
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 
 # Application settings
@@ -369,8 +369,9 @@ DEBUG_MODE=false
 ```
 
 Available models at OpenRouter:
-- `openai/gpt-4-turbo` - Most capable
-- `openai/gpt-4` - Faster alternative
+- `nemetron/nemetron-3-super` - NVidia Nemotron 3 Super (⭐ Primary - recommended)
+- ~~`openai/gpt-4-turbo`~~ - (Alternative, requires separate API key)
+- ~~`openai/gpt-4`~~ - (Alternative, requires separate API key)
 - `anthropic/claude-3-opus` - Alternative provider
 - See https://openrouter.ai/models for full list
 

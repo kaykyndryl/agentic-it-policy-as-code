@@ -8,7 +8,7 @@ Successfully migrated the IT Ticket Management System from **Azure Foundry** to 
 
 ✅ **No Azure setup needed** - Foundry was not available  
 ✅ **Free account** - Get started immediately at https://openrouter.ai  
-✅ **OpenAI-compatible** - Same API format, multiple providers (GPT-4, Claude, etc.)  
+✅ **OpenAI-compatible** - Same API format, powered by NVidia Nemotron 3 Super (with support for other providers)  
 ✅ **Instant deployment** - No infrastructure to provision  
 ✅ **Live immediately** - Start processing tickets right away  
 
@@ -54,12 +54,13 @@ FOUNDRY_MODEL_DEPLOYMENT_NAME=your-model-deployment-name
 **After:**
 ```env
 OPENROUTER_API_KEY=<your-openrouter-api-key>
-OPENROUTER_MODEL=openai/gpt-4-turbo
+OPENROUTER_MODEL=nemetron/nemetron-3-super
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 ```
 
 **Key Difference:**
 - Single API key instead of multiple Azure credentials
+- Uses NVidia Nemotron 3 Super by default (high performance, cost-effective)
 - Model selection is flexible (can change anytime)
 
 ### 3. Agent Implementation (`src/agents.py`)
@@ -228,19 +229,18 @@ Expected response:
 
 OpenRouter gives you access to multiple models:
 
-### Fast & Cheap
+### Primary (Recommended) ⭐
 ```env
-OPENROUTER_MODEL=openai/gpt-3.5-turbo
+OPENROUTER_MODEL=nemetron/nemetron-3-super
+# NVidia Nemotron 3 Super: High performance, cost-effective
 ```
 
-### Balanced (Recommended)
+### Alternative Models
 ```env
-OPENROUTER_MODEL=openai/gpt-4-turbo
-```
-
-### Most Capable
-```env
-OPENROUTER_MODEL=openai/gpt-4
+# OpenAI alternatives (requires API key)
+# OPENROUTER_MODEL=openai/gpt-4-turbo
+# OPENROUTER_MODEL=openai/gpt-4
+# OPENROUTER_MODEL=openai/gpt-3.5-turbo
 ```
 
 ### Alternative Providers

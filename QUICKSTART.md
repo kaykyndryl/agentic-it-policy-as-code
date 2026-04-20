@@ -135,21 +135,22 @@ Your `.env` file is pre-configured:
 
 ```env
 OPENROUTER_API_KEY=<your-openrouter-api-key>  # ✓ Configured
-OPENROUTER_MODEL=openai/gpt-4-turbo            # ✓ Set to GPT-4 Turbo
+OPENROUTER_MODEL=nemetron/nemetron-3-super    # ✓ Set to NVidia Nemotron 3 Super (primary)
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 LOG_LEVEL=INFO
 DEBUG_MODE=false
 ```
 
-**Optional: Change Model**
+**Optional: Change Model (Advanced)**
 
 Edit `.env` to try different models:
 ```env
-# Faster option
-OPENROUTER_MODEL=openai/gpt-4
+# Primary (Recommended)
+OPENROUTER_MODEL=nemetron/nemetron-3-super
 
-# Claude alternative  
-OPENROUTER_MODEL=anthropic/claude-3-opus
+# Alternative models (commented - requires own API keys)
+# OPENROUTER_MODEL=openai/gpt-4-turbo
+# OPENROUTER_MODEL=anthropic/claude-3-opus
 
 # See all: https://openrouter.io/models
 ```

@@ -16,27 +16,53 @@ class DemoTicketAnalyzerAgent:
     def __init__(self):
         self.name = "TicketAnalyzerAgent"
     
-    async def analyze_ticket(self, ticket_data: dict) -> str:
-        """Analyze ticket based on patterns."""
+    async def analyze_ticket(self, ticket_data: dict) -> dict:
+        """Analyze ticket based on patterns and return policy identification."""
+        from src.tools import PolicyLookupTool
+        
         ticket_id = ticket_data.get("ticket_id", "UNKNOWN")
         title = ticket_data.get("title", "").lower()
-        policies = ticket_data.get("policy_implications", [])
+        description = ticket_data.get("description", "").lower()
+        ticket_text = f"{title} {description}"
         
-        # Pattern-based analysis
-        if "password" in title:
-            analysis = f"Ticket {ticket_id} involves password management. Policy POL-001 applies."
-        elif "mfa" in title or "vpn" in title:
-            analysis = f"Ticket {ticket_id} involves authentication/MFA. Policy POL-002 applies."
-        elif "malware" in title or "suspicious" in title:
-            analysis = f"Ticket {ticket_id} is a security incident. Policy POL-007 (Incident Response) applies."
-        elif "data" in title or "share" in title:
-            analysis = f"Ticket {ticket_id} involves data handling. Policy POL-003 (Data Classification) applies."
-        elif "access" in title or "approval" in title:
-            analysis = f"Ticket {ticket_id} requires access control review. Policy POL-005 applies."
+        # Identify policies based on keywords
+        identified_policies = []
+        policy_ids = []
+        
+        policy_keywords = {
+            "POL-001": ["password", "reset", "credential", "authentication", "login"],
+            "POL-002": ["mfa", "multi-factor", "vpn", "two-factor", "2fa", "totp"],
+            "POL-003": ["data", "sensitive", "confidential", "classification", "encryption", "breach", "exposure"],
+            "POL-004": ["patch", "update", "vulnerability", "critical", "security patch"],
+            "POL-005": ["access", "permission", "approval", "provisioning", "deprovisioning", "role"],
+            "POL-006": ["device", "mdm", "mobile", "endpoint", "laptop", "computer", "antivirus"],
+            "POL-007": ["incident", "malware", "suspicious", "breach", "forensic", "investigation"],
+            "POL-008": ["acceptable use", "personal use", "torrent", "streaming"]
+        }
+        
+        for policy_id, keywords in policy_keywords.items():
+            if any(kw in ticket_text for kw in keywords):
+                policy = PolicyLookupTool.get_policy_by_id(policy_id)
+                if policy and policy_id not in policy_ids:
+                    identified_policies.append(policy)
+                    policy_ids.append(policy_id)
+        
+        # Generate analysis text
+        if policy_ids:
+            analysis = f"Ticket {ticket_id} analysis: {title[:50]}...\n"
+            analysis += f"Identified {len(policy_ids)} relevant policies:\n"
+            for pid in policy_ids:
+                for p in identified_policies:
+                    if p.get('id') == pid:
+                        analysis += f"- {pid}: {p.get('title')}\n"
         else:
-            analysis = f"Ticket {ticket_id} requires standard IT support. Policies: {', '.join(policies)}"
+            analysis = f"Ticket {ticket_id} requires standard IT support analysis: {title[:50]}..."
         
-        return analysis
+        return {
+            "content": analysis,
+            "identified_policies": identified_policies,
+            "policy_ids": policy_ids
+        }
 
 
 class DemoRiskAssessmentAgent:
