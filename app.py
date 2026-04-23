@@ -217,6 +217,36 @@ async def get_ticket_status(ticket_id: str):
     }
 
 
+@app.post("/api/tickets/{ticket_id}/override-severity")
+async def override_severity(ticket_id: str, override_severity: dict):
+    """
+    Handle human-in-the-loop severity override.
+    
+    Allows IT support agent to override AI-recommended or user-reported severity.
+    
+    Request body:
+    {
+        "user_reported_severity": "low",
+        "ai_recommended_severity": "high", 
+        "confirmed_severity": "high",
+        "reasoning": "Based on email pattern analysis..."
+    }
+    """
+    try:
+        logger.info(f"Severity override for {ticket_id}: {override_severity.get('confirmed_severity')}")
+        return {
+            "status": "override_confirmed",
+            "ticket_id": ticket_id,
+            "original_severity": override_severity.get("user_reported_severity"),
+            "ai_recommended": override_severity.get("ai_recommended_severity"),
+            "confirmed_severity": override_severity.get("confirmed_severity"),
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Error processing severity override: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 @app.post("/api/tickets/batch")
 async def batch_process_tickets(tickets: list[TicketRequest]):
     """

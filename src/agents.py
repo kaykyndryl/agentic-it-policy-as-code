@@ -155,14 +155,14 @@ class RiskAssessmentAgent:
     
     async def assess_risk(self, ticket_data: dict, analysis: str) -> dict:
         """
-        Assess and classify ticket risk level.
+        Assess and classify ticket risk level + AI-recommended severity.
         
         Args:
             ticket_data: Dictionary containing ticket information
             analysis: Prior analysis from ticket analyzer
             
         Returns:
-            Risk assessment with severity classification
+            Risk assessment with severity classification + AI severity recommendation
         """
         system_prompt = """You are a risk assessment specialist. Based on the provided ticket information:
 1. Evaluate the risk score (0-100)
@@ -170,16 +170,21 @@ class RiskAssessmentAgent:
    - Level 1 (Low): Common issues with standard fixes (score < 35)
    - Level 2 (Medium): Requires specialist review (score 35-65)
    - Level 3 (High): Security/compliance risks requiring escalation (score > 65)
-3. Provide clear reasoning for your classification
-4. Identify approval requirements if any
+3. Recommend an appropriate severity for the ticket based on content:
+   - low: User convenience issues, can wait
+   - medium: Operational impact, needs attention today
+   - high: Critical business impact, urgent
+   - critical: Security/compliance risk, immediate action
+4. Provide clear reasoning for your classification
 
-Return ONLY a valid JSON object with: risk_score, risk_level, classification, reasoning."""
+Return ONLY a valid JSON object with: risk_score, risk_level, classification, reasoning, ai_recommended_severity."""
         
         user_prompt = f"""Assess the risk level for this ticket:
 
 Ticket ID: {ticket_data.get('ticket_id')}
 Title: {ticket_data.get('title')}
-Severity: {ticket_data.get('severity_reported')}
+Description: {ticket_data.get('description')}
+User-Reported Severity: {ticket_data.get('severity_reported')}
 Systems: {', '.join(ticket_data.get('affected_systems', []))}
 Policies: {', '.join(ticket_data.get('policy_implications', []))}
 Policies Count: {len(ticket_data.get('policy_implications', []))}
@@ -187,12 +192,15 @@ Policies Count: {len(ticket_data.get('policy_implications', []))}
 Prior Analysis:
 {analysis}
 
+Based on the TITLE and DESCRIPTION content (not just user input), recommend what the actual severity should be.
+
 Return ONLY a JSON object with these fields:
 {{
   "risk_score": <0-100>,
   "risk_level": <1, 2, or 3>,
   "classification": "<description>",
-  "reasoning": "<explanation>"
+  "reasoning": "<explanation>",
+  "ai_recommended_severity": "<low|medium|high|critical>"
 }}"""
         
         try:
@@ -216,7 +224,11 @@ Return ONLY a JSON object with these fields:
                 json_end = response_text.rfind('}') + 1
                 if json_start >= 0 and json_end > json_start:
                     json_str = response_text[json_start:json_end]
-                    return json.loads(json_str)
+                    result = json.loads(json_str)
+                    # Ensure ai_recommended_severity is included
+                    if "ai_recommended_severity" not in result:
+                        result["ai_recommended_severity"] = "medium"
+                    return result
             except (json.JSONDecodeError, ValueError):
                 pass
             
@@ -228,7 +240,8 @@ Return ONLY a JSON object with these fields:
                 "risk_score": risk_score,
                 "risk_level": risk_level,
                 "classification": f"Level {risk_level} - " + ("Low Risk" if risk_level == 1 else "Medium Risk" if risk_level == 2 else "High Risk"),
-                "reasoning": f"Risk assessment based on severity: {ticket_data.get('severity_reported', 'unknown')}, Affected systems: {len(ticket_data.get('affected_systems', []))} system(s), Policy implications: {len(ticket_data.get('policy_implications', []))} policy(ies)"
+                "reasoning": f"Risk assessment based on severity: {ticket_data.get('severity_reported', 'unknown')}, Affected systems: {len(ticket_data.get('affected_systems', []))} system(s), Policy implications: {len(ticket_data.get('policy_implications', []))} policy(ies)",
+                "ai_recommended_severity": "medium"
             }
         except Exception as e:
             logger.error(f"Error in risk assessment: {str(e)}", exc_info=True)
@@ -238,7 +251,8 @@ Return ONLY a JSON object with these fields:
                 "risk_score": 50,
                 "risk_level": 2,
                 "classification": "Level 2 - Medium Risk (API Error - Fallback Mode)",
-                "reasoning": f"Risk assessment encountered error: {str(e)[:100]}. Using fallback analysis."
+                "reasoning": f"Risk assessment encountered error: {str(e)[:100]}. Using fallback analysis.",
+                "ai_recommended_severity": "medium"
             }
 
 
