@@ -115,7 +115,7 @@ async def simple_http_server():
             
             Sample request:
             {
-                "ticket_id": "TKT-001",
+                "ticket_id": "INC-001",
                 "title": "Password Reset Request",
                 "description": "User forgot password",
                 "department": "Finance",
@@ -209,7 +209,7 @@ async def simple_asyncio_server():
                 <form id="ticketForm">
                     <div class="form-group">
                         <label for="ticketId">Ticket ID:</label>
-                        <input type="text" id="ticketId" value="TKT-001" required>
+                        <input type="text" id="ticketId" value="INC-001" required>
                     </div>
                     
                     <div class="form-group">

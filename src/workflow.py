@@ -60,7 +60,7 @@ class TicketProcessingWorkflow:
         
         # Ensure required fields exist
         if not ticket_data.get("ticket_id"):
-            ticket_data["ticket_id"] = f"TKT-{int(datetime.now().timestamp())}"
+            ticket_data["ticket_id"] = f"INC-{int(datetime.now().timestamp())}"
         
         ticket_id = ticket_data.get("ticket_id", "UNKNOWN")
         logger.info(f"Starting workflow for ticket {ticket_id}")

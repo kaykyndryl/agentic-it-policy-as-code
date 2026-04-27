@@ -452,7 +452,7 @@
                 <form id="ticketForm">
                     <div class="form-group">
                         <label for="ticketId">Ticket ID</label>
-                        <input type="text" id="ticketId" value="TKT-001" placeholder="e.g., TKT-001">
+                        <input type="text" id="ticketId" value="INC-001" placeholder="e.g., INC-001">
                     </div>
                     
                     <div class="form-group">
@@ -477,6 +477,15 @@
                             <option value="medium" selected>Medium</option>
                             <option value="high">High</option>
                             <option value="critical">Critical</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="urgency">Urgency Level</label>
+                        <select id="urgency">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
                         </select>
                     </div>
                     
@@ -575,9 +584,10 @@
         const samples = {
             password: {
                 title: "Password Reset Request",
-                description: "User forgot password and cannot access work account. Reports urgent need.",
+                description: "User forgot password and cannot access work account. Standard password reset procedure.",
                 department: "Finance",
-                severity: "high",
+                severity: "low",
+                urgency: "low",
                 systems: "Active Directory, Email"
             },
             vpn: {
@@ -585,6 +595,7 @@
                 description: "Employee reports repeated MFA failures when connecting to corporate VPN. Blocking remote work.",
                 department: "Engineering",
                 severity: "critical",
+                urgency: "high",
                 systems: "VPN, MFA"
             },
             malware: {
@@ -592,6 +603,7 @@
                 description: "User received suspicious email and downloaded attachment. Antivirus triggered alerts on endpoint.",
                 department: "Sales",
                 severity: "critical",
+                urgency: "high",
                 systems: "Endpoints, Email"
             }
         };
@@ -605,6 +617,7 @@
             document.getElementById("description").value = sample.description;
             document.getElementById("department").value = sample.department;
             document.getElementById("severity").value = sample.severity;
+            document.getElementById("urgency").value = sample.urgency;
             document.getElementById("systems").value = sample.systems;
         }
         
@@ -667,6 +680,7 @@
                 department: document.getElementById("department").value,
                 affected_systems: document.getElementById("systems").value.split(",").map(s => s.trim()).filter(s => s),
                 severity_reported: document.getElementById("severity").value,
+                urgency: document.getElementById("urgency").value,
                 policy_implications: []
             };
             
@@ -744,12 +758,14 @@
             const riskLevel = result.final_action?.risk_level || result.stages?.risk_assessment?.risk_level || 2;
             const riskScore = result.stages?.risk_assessment?.risk_score || 50;
             const classification = result.final_action?.classification || result.stages?.risk_assessment?.classification || `Level ${riskLevel}`;
+            const urgency = result.urgency || "medium";
             
             let html = `
                 <div class="result">
                     <div class="result-item risk-level-${riskLevel}">
                         <strong>🎫 ${result.ticket_id} <span class="badge level-${riskLevel}">Risk Level ${riskLevel}</span></strong><br>
-                        <strong>${classification}</strong> | Risk Score: <strong>${riskScore}/100</strong>
+                        <strong>${classification}</strong> | Risk Score: <strong>${riskScore}/100</strong><br>
+                        <em style="font-size: 11px; color: #666;">Urgency: <strong>${urgency.toUpperCase()}</strong> | Reported Severity: <strong>${result.user_reported_severity || 'unknown'}</strong></em>
                     </div>
             `;
             
@@ -816,24 +832,52 @@
             if (result.stages?.analysis?.content) {
                 html += `
                     <div class="result-item" style="background: #f0f7ff; border-left-color: #2196F3;">
-                        <strong>📋 Ticket Analysis (AI Output)</strong><br>
+                        <strong>📋 Ticket Analysis (GenAI Output)</strong><br>
                         <div style="margin-top: 6px; font-size: 12px; line-height: 1.5; color: #333;">
                             ${result.stages.analysis.content}
                         </div>
+                        ${result.stages.analysis.model ? `<em style="font-size: 10px; color: #666; margin-top: 6px; display: block;">Model: ${result.stages.analysis.model}</em>` : ''}
                     </div>
                 `;
             }
             
-            // Stage 2: AI Reasoning (from RiskAssessmentAgent)
-            if (result.stages?.risk_assessment?.reasoning) {
-                html += `
+            // Stage 2: AI Reasoning (from RiskAssessmentAgent) - Enhanced
+            if (result.stages?.risk_assessment) {
+                const ra = result.stages.risk_assessment;
+                let raContent = `
                     <div class="result-item" style="background: #f0f7ff; border-left-color: #2196F3;">
-                        <strong>🧠 AI Analysis & Reasoning</strong><br>
+                        <strong>🧠 AI Risk Assessment & Reasoning</strong><br>
                         <div style="margin-top: 6px; font-size: 12px; line-height: 1.5; color: #333;">
-                            ${result.stages.risk_assessment.reasoning}
-                        </div>
-                    </div>
                 `;
+                
+                if (ra.reasoning) {
+                    raContent += `<strong>Analysis:</strong><br>${ra.reasoning}<br><br>`;
+                }
+                
+                if (ra.confidence_score) {
+                    raContent += `<strong>Confidence:</strong> ${(ra.confidence_score * 100).toFixed(0)}% confident in assessment<br>`;
+                }
+                
+                if (ra.affected_systems) {
+                    raContent += `<strong>Systems Impacted:</strong> ${ra.affected_systems.length} system(s)<br>`;
+                }
+                
+                if (ra.policies_affected_count) {
+                    raContent += `<strong>Policies Triggered:</strong> ${ra.policies_affected_count} policy/ies<br>`;
+                }
+                
+                if (ra.assessment_notes) {
+                    raContent += `<strong>Assessment Notes:</strong> ${ra.assessment_notes}<br>`;
+                }
+                
+                raContent += `</div>`;
+                
+                if (ra.model) {
+                    raContent += `<em style="font-size: 10px; color: #666;">Model: ${ra.model}</em>`;
+                }
+                
+                raContent += `</div>`;
+                html += raContent;
             }
             
             // Stage 3: Routing & Actions (from RoutingAgent)
@@ -841,14 +885,18 @@
                 const routing = result.final_action.routing;
                 html += `
                     <div class="result-item" style="background: #f1f8e9; border-left-color: #4caf50;">
-                        <strong>🎯 Team Assignment & Actions (from RoutingAgent)</strong><br>
+                        <strong>🎯 Team Assignment & Actions (GenAI Routing)</strong><br>
                         <div style="margin-top: 6px; font-size: 12px;">
                             <strong>Assigned Team:</strong> ${routing.assigned_team}<br>
                             <strong>Priority:</strong> <span style="background: ${routing.priority === 'critical' ? '#dc3545' : routing.priority === 'high' ? '#ff9800' : '#28a745'}; color: white; padding: 2px 6px; border-radius: 3px;">${routing.priority.toUpperCase()}</span><br>
                 `;
                 
+                if (routing.estimated_resolution_time) {
+                    html += `<strong>Estimated Resolution:</strong> ${routing.estimated_resolution_time}<br>`;
+                }
+                
                 if (routing.automation_agents && routing.automation_agents.length > 0) {
-                    html += `<strong>Automation Agents:</strong> ${routing.automation_agents.join(", ")}<br>`;
+                    html += `<strong>Suggested Agents:</strong> ${routing.automation_agents.join(", ")}<br>`;
                 }
                 
                 if (routing.immediate_actions && routing.immediate_actions.length > 0) {
@@ -857,6 +905,13 @@
                             ${routing.immediate_actions.map(a => `<li style="font-size: 11px;">${a}</li>`).join("")}
                         </ul>
                     `;
+                }
+                
+                if (routing.reasoning) {
+                    html += `<strong style="display: block; margin-top: 6px;">Routing Reasoning:</strong>
+                    <div style="font-size: 11px; margin-top: 4px; padding: 6px; background: white; border-radius: 3px; border-left: 2px solid #4caf50;">
+                        ${routing.reasoning}
+                    </div>`;
                 }
                 
                 html += `</div></div>`;

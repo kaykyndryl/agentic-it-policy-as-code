@@ -60,6 +60,7 @@ class TicketRequest(BaseModel):
     department: str
     affected_systems: list[str] = []
     severity_reported: str = "medium"
+    urgency: str = "medium"
     policy_implications: list[str] = []
 
 
@@ -187,7 +188,7 @@ async def process_ticket(ticket_request: TicketRequest):
         
         # Generate ticket ID if not provided
         if not ticket_data.get("ticket_id"):
-            ticket_data["ticket_id"] = f"TKT-{int(datetime.now().timestamp())}"
+            ticket_data["ticket_id"] = f"INC-{int(datetime.now().timestamp())}"
         
         ticket_id = ticket_data["ticket_id"]
         logger.info(f"Processing ticket {ticket_id}: {ticket_data.get('title')}")

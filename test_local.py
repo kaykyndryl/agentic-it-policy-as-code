@@ -103,8 +103,8 @@ async def test_ticket_analysis():
     print("\n2. TICKET DATABASE TOOL")
     print("-" * 40)
     db_tool = TicketDatabaseTool()
-    ticket = db_tool.execute(operation="get", ticket_id="TKT-001")
-    print(f"Retrieved ticket TKT-001:")
+    ticket = db_tool.execute(operation="get", ticket_id="INC-001")
+    print(f"Retrieved ticket INC-001:")
     print(f"  Title: {json.loads(ticket).get('title')}")
     print(f"  Status: {json.loads(ticket).get('status')}")
     

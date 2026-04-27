@@ -22,7 +22,7 @@ TEST_TICKETS = [
         "name": "Password Reset",
         "scenario": "Level 1 - LOW RISK - AUTOMATED",
         "ticket": {
-            "ticket_id": "TKT-DEMO-001",
+            "ticket_id": "INC-DEMO-001",
             "title": "Password Reset Request",
             "description": "User forgot their password and cannot log in to their work account. Tried password recovery email but it didn't arrive.",
             "department": "Finance",
@@ -35,7 +35,7 @@ TEST_TICKETS = [
         "name": "VPN/MFA Issue",
         "scenario": "Level 2 - MEDIUM RISK - SPECIALIST REVIEW",
         "ticket": {
-            "ticket_id": "TKT-DEMO-002",
+            "ticket_id": "INC-DEMO-002",
             "title": "Cannot Access VPN - MFA Failures",
             "description": "Employee reports repeated MFA failures when attempting to connect to corporate VPN. They are working from home and cannot access necessary customer data. They've tried on mobile phone authenticator app but keeps getting authentication timeouts.",
             "department": "Engineering",
@@ -48,7 +48,7 @@ TEST_TICKETS = [
         "name": "Security Alert",
         "scenario": "Level 3 - HIGH RISK - ESCALATION REQUIRED",
         "ticket": {
-            "ticket_id": "TKT-DEMO-003",
+            "ticket_id": "INC-DEMO-003",
             "title": "Suspicious Email Download - Potential Malware Detected",
             "description": "User received suspicious email claiming to be a critical security update from 'Microsoft'. Email included an attachment 'Critical_Update.exe'. User downloaded and opened the attachment. System antivirus immediately triggered multiple alerts. User also reports seeing unusual network activity. IT department detected outbound connections to known malicious IPs.",
             "department": "Sales",
