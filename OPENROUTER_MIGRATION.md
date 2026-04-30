@@ -306,8 +306,8 @@ Requires FastAPI wrapper for `azure-functions` framework.
 # Check .env file
 cat .env | grep OPENROUTER_API_KEY
 
-# Or set directly
-export OPENROUTER_API_KEY=<your-openrouter-api-key>
+# Set your API key from https://openrouter.ai in .env
+# Then start the server
 python -m src.main
 ```
 
