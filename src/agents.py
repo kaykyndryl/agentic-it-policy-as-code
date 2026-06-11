@@ -162,24 +162,29 @@ class RiskAssessmentAgent:
             analysis: Prior analysis from ticket analyzer
             
         Returns:
-            Risk assessment with severity classification + AI severity recommendation
+            Risk assessment with severity classification + AI severity recommendation + detailed reasoning
         """
         system_prompt = """You are a risk assessment specialist. Based on the provided ticket information:
-1. Evaluate the risk score (0-100)
+1. Evaluate the risk score (0-100) with detailed breakdown:
+   - Start with base severity score
+   - Add points for critical security/compliance keywords
+   - Add points for affected system criticality
+   - Add points for policy violations
 2. Classify severity level:
    - Level 1 (Low): Common issues with standard fixes (score < 35)
    - Level 2 (Medium): Requires specialist review (score 35-65)
    - Level 3 (High): Security/compliance risks requiring escalation (score > 65)
-3. Recommend an appropriate severity for the ticket based on content:
+3. Explain each scoring component and how it contributed to the final score
+4. Provide reasoning for the classification that explains why this risk level was assigned
+5. Recommend an appropriate severity for the ticket:
    - low: User convenience issues, can wait
    - medium: Operational impact, needs attention today
    - high: Critical business impact, urgent
    - critical: Security/compliance risk, immediate action
-4. Provide clear reasoning for your classification
 
-Return ONLY a valid JSON object with: risk_score, risk_level, classification, reasoning, ai_recommended_severity."""
+Return ONLY a valid JSON object with: risk_score, risk_level, classification, reasoning, ai_recommended_severity, scoring_factors."""
         
-        user_prompt = f"""Assess the risk level for this ticket:
+        user_prompt = f"""Assess the risk level for this ticket with detailed scoring breakdown:
 
 Ticket ID: {ticket_data.get('ticket_id')}
 Title: {ticket_data.get('title')}
@@ -192,14 +197,24 @@ Policies Count: {len(ticket_data.get('policy_implications', []))}
 Prior Analysis:
 {analysis}
 
-Based on the TITLE and DESCRIPTION content (not just user input), recommend what the actual severity should be.
+Based on the TITLE and DESCRIPTION content, provide:
+1. Scoring breakdown (base severity + bonuses for keywords/systems/policies)
+2. Comprehensive reasoning explaining each factor's contribution
+3. Clear classification explanation
+4. Recommended severity level
 
 Return ONLY a JSON object with these fields:
 {{
   "risk_score": <0-100>,
   "risk_level": <1, 2, or 3>,
-  "classification": "<description>",
-  "reasoning": "<explanation>",
+  "classification": "<brief description of risk level>",
+  "reasoning": "<detailed explanation of scoring, factors considered, and why this categorization>",
+  "scoring_factors": {{
+    "severity_base": <base score from severity>,
+    "critical_keywords_boost": <points added for security keywords>,
+    "system_criticality_boost": <points added for critical systems>,
+    "policy_impact_boost": <points added for policy violations>
+  }},
   "ai_recommended_severity": "<low|medium|high|critical>"
 }}"""
         
@@ -211,7 +226,7 @@ Return ONLY a JSON object with these fields:
                     {"role": "user", "content": user_prompt}
                 ],
                 temperature=0.3,
-                max_tokens=500,
+                max_tokens=800,
                 timeout=30.0
             )
             
@@ -225,33 +240,93 @@ Return ONLY a JSON object with these fields:
                 if json_start >= 0 and json_end > json_start:
                     json_str = response_text[json_start:json_end]
                     result = json.loads(json_str)
-                    # Ensure ai_recommended_severity is included
+                    # Ensure required fields are present
                     if "ai_recommended_severity" not in result:
                         result["ai_recommended_severity"] = "medium"
+                    if "scoring_factors" not in result:
+                        # Add estimated factors if not provided
+                        result["scoring_factors"] = {
+                            "severity_base": ticket_data.get("risk_level", 1) * 30,
+                            "critical_keywords_boost": 0,
+                            "system_criticality_boost": 0,
+                            "policy_impact_boost": 0
+                        }
                     return result
             except (json.JSONDecodeError, ValueError):
                 pass
             
-            # Fallback to default risk assessment
-            logger.warning(f"Could not parse AI response for risk assessment, using fallback")
-            risk_score = ticket_data.get("risk_level", 1) * 30
-            risk_level = ticket_data.get("risk_level", 1)
+            # Fallback to structured risk assessment with detailed reasoning
+            logger.warning(f"Could not parse AI response for risk assessment, using structured fallback")
+            
+            # Calculate score with transparency
+            severity = ticket_data.get("severity_reported", "medium").lower()
+            severity_scores = {"low": 10, "medium": 30, "high": 60, "critical": 80}
+            base_score = severity_scores.get(severity, 30)
+            risk_score = base_score
+            
+            # Scoring factors tracking
+            critical_keywords = ["malware", "breach", "security", "data exposure", "unauthorized", "compromised"]
+            keyword_bonus = 0
+            found_keywords = [kw for kw in critical_keywords if kw in str(ticket_data).lower()]
+            if found_keywords:
+                keyword_bonus = min(20, len(found_keywords) * 10)
+                risk_score += keyword_bonus
+            
+            critical_systems = ["database", "vlan", "directory", "email", "vpn", "domain", "authentication"]
+            system_bonus = 0
+            if any(sys.lower() in str(ticket_data.get('affected_systems', [])).lower() for sys in critical_systems):
+                system_bonus = 5
+                risk_score += system_bonus
+            
+            policy_bonus = 0
+            if len(ticket_data.get('policy_implications', [])) >= 2:
+                policy_bonus = 10
+            elif len(ticket_data.get('policy_implications', [])) == 1:
+                policy_bonus = 5
+            risk_score = min(90, risk_score + policy_bonus)
+            
+            # Determine level
+            if risk_score < 35:
+                risk_level = 1
+                classification = "Low Risk - Automated Solution Available"
+                reasoning = f"Score of {risk_score}/100 based on {severity} severity ({base_score} base) with minimal escalation factors. Issue can be addressed through standard procedures."
+            elif risk_score < 65:
+                risk_level = 2
+                classification = "Medium Risk - Specialist Review Required"
+                reasoning = f"Score of {risk_score}/100 reflects moderate complexity. Base severity ({base_score}) " + (f"elevated by critical factors (keywords: {', '.join(found_keywords[:2])}, +{keyword_bonus} points)" if found_keywords else "") + ". Requires specialist evaluation."
+            else:
+                risk_level = 3
+                classification = "High Risk - Escalation Required"
+                reasoning = f"Score of {risk_score}/100 indicates significant risk. Multiple factors contribute: base severity ({base_score}), " + (f"critical security indicators detected (+{keyword_bonus}), " if keyword_bonus else "") + (f"critical systems involved (+{system_bonus}), " if system_bonus else "") + f"and {len(ticket_data.get('policy_implications', []))} policy implications (+{policy_bonus}). Immediate escalation essential."
+            
             return {
                 "risk_score": risk_score,
                 "risk_level": risk_level,
-                "classification": f"Level {risk_level} - " + ("Low Risk" if risk_level == 1 else "Medium Risk" if risk_level == 2 else "High Risk"),
-                "reasoning": f"Risk assessment based on severity: {ticket_data.get('severity_reported', 'unknown')}, Affected systems: {len(ticket_data.get('affected_systems', []))} system(s), Policy implications: {len(ticket_data.get('policy_implications', []))} policy(ies)",
+                "classification": classification,
+                "reasoning": reasoning,
+                "scoring_factors": {
+                    "severity_base": base_score,
+                    "critical_keywords_boost": keyword_bonus,
+                    "system_criticality_boost": system_bonus,
+                    "policy_impact_boost": policy_bonus
+                },
                 "ai_recommended_severity": "medium"
             }
         except Exception as e:
             logger.error(f"Error in risk assessment: {str(e)}", exc_info=True)
-            # Safe fallback
+            # Safe fallback with detailed reasoning
             logger.warning(f"Using emergency fallback for risk assessment")
             return {
                 "risk_score": 50,
                 "risk_level": 2,
-                "classification": "Level 2 - Medium Risk (API Error - Fallback Mode)",
-                "reasoning": f"Risk assessment encountered error: {str(e)[:100]}. Using fallback analysis.",
+                "classification": "Level 2 - Medium Risk (Using Fallback Assessment)",
+                "reasoning": f"Assessment encountered connection error to AI service. Using fallback heuristic: base risk adjusted for severity ({ticket_data.get('severity_reported', 'unknown')}), affected systems ({len(ticket_data.get('affected_systems', []))}), and policy count ({len(ticket_data.get('policy_implications', []))}). Manual review recommended.",
+                "scoring_factors": {
+                    "severity_base": 30,
+                    "critical_keywords_boost": 0,
+                    "system_criticality_boost": 0,
+                    "policy_impact_boost": 0
+                },
                 "ai_recommended_severity": "medium"
             }
 

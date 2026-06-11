@@ -72,11 +72,22 @@ class DemoRiskAssessmentAgent:
         self.name = "RiskAssessmentAgent"
     
     async def assess_risk(self, ticket_data: dict, analysis: str) -> dict:
-        """Assess risk level based on ticket characteristics."""
+        """Assess risk level based on ticket characteristics with detailed reasoning."""
         title = ticket_data.get("title", "").lower()
+        description = ticket_data.get("description", "").lower()
         severity = ticket_data.get("severity_reported", "medium").lower()
         affected_systems = ticket_data.get("affected_systems", [])
         policies = ticket_data.get("policy_implications", [])
+        
+        # Track scoring breakdown for reasoning
+        scoring_factors = {
+            "severity_contribution": 0,
+            "critical_keywords_found": [],
+            "critical_keywords_contribution": 0,
+            "system_criticality_contribution": 0,
+            "policy_impact_contribution": 0,
+            "critical_systems_detected": []
+        }
         
         # Base score from severity
         severity_scores = {
@@ -85,21 +96,42 @@ class DemoRiskAssessmentAgent:
             "high": 60,
             "critical": 80
         }
-        risk_score = severity_scores.get(severity, 30)
+        base_score = severity_scores.get(severity, 30)
+        scoring_factors["severity_contribution"] = base_score
+        risk_score = base_score
         
-        # Adjust for keywords
-        critical_keywords = ["malware", "breach", "security", "data exposure", "unauthorized"]
-        if any(kw in title for kw in critical_keywords):
-            risk_score = min(95, risk_score + 20)
+        # Adjust for critical keywords
+        critical_keywords = ["malware", "breach", "security", "data exposure", "unauthorized", "compromised", "ransomware", "exploit", "vulnerability"]
+        found_critical_keywords = [kw for kw in critical_keywords if kw in title or kw in description]
+        if found_critical_keywords:
+            keyword_boost = min(25, len(found_critical_keywords) * 10)
+            scoring_factors["critical_keywords_found"] = found_critical_keywords
+            scoring_factors["critical_keywords_contribution"] = keyword_boost
+            risk_score = min(95, risk_score + keyword_boost)
         
         # Adjust for policies
-        if len(policies) >= 2:
-            risk_score = min(90, risk_score + 10)
+        policy_boost = 0
+        if len(policies) >= 3:
+            policy_boost = 15
+        elif len(policies) >= 2:
+            policy_boost = 10
+        elif len(policies) == 1:
+            policy_boost = 5
+        
+        if policy_boost > 0:
+            scoring_factors["policy_impact_contribution"] = policy_boost
+            risk_score = min(90, risk_score + policy_boost)
         
         # Adjust for affected systems criticality
-        critical_systems = ["database", "vlan", "directory", "email", "vpn"]
-        if any(sys.lower() in str(affected_systems).lower() for sys in critical_systems):
-            risk_score = min(85, risk_score + 5)
+        critical_systems = ["database", "vlan", "directory", "email", "vpn", "domain", "authentication", "firewall"]
+        detected_critical_systems = [sys for sys in affected_systems if any(crit.lower() in sys.lower() for crit in critical_systems)]
+        
+        system_boost = 0
+        if detected_critical_systems:
+            system_boost = min(10, len(detected_critical_systems) * 5)
+            scoring_factors["critical_systems_detected"] = detected_critical_systems
+            scoring_factors["system_criticality_contribution"] = system_boost
+            risk_score = min(85, risk_score + system_boost)
         
         # Determine level
         if risk_score < 35:
@@ -112,11 +144,62 @@ class DemoRiskAssessmentAgent:
             risk_level = 3
             classification = "High Risk - Escalation Required"
         
+        # Build comprehensive reasoning
+        reasoning_parts = [
+            f"Risk Score Calculation: {base_score} (severity: {severity.upper()})"
+        ]
+        
+        if scoring_factors["critical_keywords_found"]:
+            reasoning_parts.append(
+                f"Critical keywords detected: {', '.join(scoring_factors['critical_keywords_found'])} "
+                f"(+{scoring_factors['critical_keywords_contribution']} points)"
+            )
+        
+        if scoring_factors["critical_systems_detected"]:
+            reasoning_parts.append(
+                f"High-criticality systems affected: {', '.join(scoring_factors['critical_systems_detected'])} "
+                f"(+{scoring_factors['system_criticality_contribution']} points)"
+            )
+        
+        if len(policies) > 0:
+            reasoning_parts.append(
+                f"Policy implications: {len(policies)} relevant policy violation(s) identified "
+                f"(+{scoring_factors['policy_impact_contribution']} points)"
+            )
+        
+        reasoning_parts.append(f"Final Risk Score: {risk_score}/100")
+        
+        # Add categorization reasoning
+        if risk_level == 1:
+            reasoning_parts.append(
+                f"Classification: {classification} - Issue is routine with well-established solutions. "
+                "Can be addressed through standard automated troubleshooting procedures."
+            )
+        elif risk_level == 2:
+            reasoning_parts.append(
+                f"Classification: {classification} - Issue requires human judgment and expertise. "
+                "Specialist team review needed to determine appropriate remediation strategy."
+            )
+        else:
+            reasoning_parts.append(
+                f"Classification: {classification} - Issue presents significant business, security, or compliance risk. "
+                "Immediate escalation to leadership and specialized teams required."
+            )
+        
+        comprehensive_reasoning = " ".join(reasoning_parts)
+        
         return {
             "risk_score": risk_score,
             "risk_level": risk_level,
             "classification": classification,
-            "reasoning": f"Score based on severity ({severity}), keywords, and {len(policies)} policy implications"
+            "reasoning": comprehensive_reasoning,
+            "scoring_breakdown": {
+                "severity_base": scoring_factors["severity_contribution"],
+                "critical_keywords_boost": scoring_factors["critical_keywords_contribution"],
+                "system_criticality_boost": scoring_factors["system_criticality_contribution"],
+                "policy_impact_boost": scoring_factors["policy_impact_contribution"],
+                "final_score": risk_score
+            }
         }
 
 

@@ -7,12 +7,17 @@ Hosts the workflow as an HTTP service via FastAPI.
 """
 
 import os
+import sys
 import json
 import logging
 import asyncio
 from typing import Optional
+from pathlib import Path
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
+
+# Add parent directory to path so 'src' module can be imported
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Load environment variables first
 load_dotenv(override=False)
@@ -33,8 +38,13 @@ async def get_workflow():
     """Get or create the workflow instance."""
     global _workflow
     if _workflow is None:
-        from src.workflow import create_workflow
-        _workflow = await create_workflow()
+        try:
+            from src.workflow import create_workflow
+            _workflow = await create_workflow()
+        except ImportError as e:
+            logger.error(f"Failed to import workflow: {e}")
+            logger.info(f"Python path: {sys.path}")
+            raise
     return _workflow
 
 
@@ -134,11 +144,11 @@ async def simple_http_server():
                 logger.error(f"Error processing ticket: {str(e)}")
                 raise HTTPException(status_code=500, detail=str(e))
         
-        logger.info("Starting FastAPI HTTP server on 0.0.0.0:8000...")
+        logger.info("Starting FastAPI HTTP server on 0.0.0.0:8111...")
         await uvicorn.run(
             app,
             host="0.0.0.0",
-            port=8000
+            port=8111
         )
         
     except ImportError:
@@ -347,12 +357,43 @@ async def simple_asyncio_server():
                 if (result.status === 'error') {
                     resultDiv.innerHTML = `<div class="result-title">❌ Error</div><pre>${JSON.stringify(result, null, 2)}</pre>`;
                 } else {
+                    const riskAssessment = result.stages?.risk_assessment || {};
+                    const finalAction = result.final_action || {};
+                    
                     resultDiv.innerHTML = `
                         <div class="result-title">✅ Ticket Processed</div>
                         <div><strong>Ticket ID:</strong> ${result.ticket_id}</div>
                         <div><strong>Status:</strong> ${result.status}</div>
-                        <div style="margin-top: 15px;"><strong>Final Action:</strong></div>
-                        <pre>${JSON.stringify(result.final_action, null, 2)}</pre>
+                        
+                        <div style="margin-top: 20px; padding: 15px; background: #f9f9f9; border-radius: 5px;">
+                            <div style="font-weight: bold; color: #667eea; margin-bottom: 10px;">🔍 Risk Assessment:</div>
+                            <div><strong>Risk Score:</strong> <span style="font-size: 1.3em; color: #667eea; font-weight: bold;">${riskAssessment.risk_score || 'N/A'}/100</span></div>
+                            <div><strong>Risk Level:</strong> <span style="font-weight: bold; color: ${riskAssessment.risk_level === 3 ? '#f44336' : riskAssessment.risk_level === 2 ? '#ff9800' : '#4caf50'};">Level ${riskAssessment.risk_level || 'N/A'}</span></div>
+                            <div style="margin-top: 10px;"><strong>Classification:</strong> ${riskAssessment.classification || 'N/A'}</div>
+                            
+                            <div style="margin-top: 15px; padding: 10px; background: white; border-left: 3px solid #667eea; border-radius: 3px;">
+                                <div style="font-weight: 600; color: #333; margin-bottom: 8px;">📊 AI Reasoning:</div>
+                                <div style="font-size: 0.95em; line-height: 1.5; color: #555;">${riskAssessment.reasoning || 'N/A'}</div>
+                            </div>
+                            
+                            ${riskAssessment.scoring_breakdown ? `
+                            <div style="margin-top: 15px; padding: 10px; background: white; border-left: 3px solid #4caf50; border-radius: 3px;">
+                                <div style="font-weight: 600; color: #333; margin-bottom: 8px;">📈 Scoring Breakdown:</div>
+                                <div style="font-size: 0.9em; line-height: 1.6; color: #555;">
+                                    <div>• Severity Base: <strong>${riskAssessment.scoring_breakdown.severity_base}</strong> points</div>
+                                    <div>• Critical Keywords Boost: <strong>${riskAssessment.scoring_breakdown.critical_keywords_boost}</strong> points</div>
+                                    <div>• System Criticality Boost: <strong>${riskAssessment.scoring_breakdown.system_criticality_boost}</strong> points</div>
+                                    <div>• Policy Impact Boost: <strong>${riskAssessment.scoring_breakdown.policy_impact_boost}</strong> points</div>
+                                    <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid #eee;">
+                                        <strong style="color: #667eea;">Final Score: ${riskAssessment.scoring_breakdown.final_score}/100</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                        
+                        <div style="margin-top: 20px;"><strong>🎯 Routing Decision:</strong></div>
+                        <pre style="background: #f5f5f5; padding: 10px; border-radius: 5px;">${JSON.stringify(finalAction.routing || finalAction, null, 2)}</pre>
                     `;
                 }
                 
@@ -444,16 +485,16 @@ async def simple_asyncio_server():
     # Start server
     runner = web.AppRunner(app)
     await runner.setup()
-    site = web.TCPSite(runner, "0.0.0.0", 8000)
+    site = web.TCPSite(runner, "0.0.0.0", 8111)
     await site.start()
     
-    logger.info("aiohttp server started on http://0.0.0.0:8000")
+    logger.info("aiohttp server started on http://0.0.0.0:8111")
     logger.info("Endpoints:")
     logger.info("  GET / - Web UI Dashboard")
     logger.info("  GET /health - Health check")
     logger.info("  POST /tickets/process - Process a ticket")
     logger.info("")
-    logger.info("🌐 Open your browser to: http://localhost:8000/")
+    logger.info("🌐 Open your browser to: http://localhost:8111/")
     
     # Keep running
     try:
@@ -477,7 +518,7 @@ async def main():
         api_key = os.getenv("OPENROUTER_API_KEY")
         if not api_key or api_key.startswith("<your"):
             logger.error("❌ OPENROUTER_API_KEY not configured in .env")
-            logger.error("   Please set your API key: export OPENROUTER_API_KEY=<your-openrouter-api-key>")
+            logger.error("   Please set your API key in environment: OPENROUTER_API_KEY=<your-openrouter-api-key>")
             raise ValueError("OpenRouter API key not configured")
         
         # Create orchestrator agent

@@ -110,7 +110,8 @@ class TicketProcessingWorkflow:
                 "risk_level": risk_assessment.get("risk_level")
             }
             
-            result["stages"]["risk_assessment"] = {
+            # Build risk assessment response with scoring details
+            risk_assessment_response = {
                 "status": "completed",
                 "risk_score": risk_assessment.get("risk_score"),
                 "risk_level": risk_assessment.get("risk_level"),
@@ -118,6 +119,12 @@ class TicketProcessingWorkflow:
                 "reasoning": risk_assessment.get("reasoning"),
                 "calculation_breakdown": risk_calculation
             }
+            
+            # Include scoring_breakdown if provided by agent (for detailed reasoning display)
+            if "scoring_breakdown" in risk_assessment:
+                risk_assessment_response["scoring_breakdown"] = risk_assessment.get("scoring_breakdown")
+            
+            result["stages"]["risk_assessment"] = risk_assessment_response
             logger.info(
                 f"Stage 2 completed: Risk Level {risk_assessment.get('risk_level')} "
                 f"(Score: {risk_assessment.get('risk_score')})"

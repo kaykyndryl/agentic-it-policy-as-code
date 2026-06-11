@@ -8,6 +8,7 @@ Provides REST API endpoints and serves the web interface.
 import os
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Optional
 from datetime import datetime
@@ -18,6 +19,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
+
+from src.opa_policy_builder import (
+    POLICY_RULES,
+    build_rego_policy,
+    extract_policy_candidates,
+    extract_text_from_document,
+)
 
 # Load environment variables
 load_dotenv(override=False)
@@ -274,6 +282,40 @@ async def batch_process_tickets(tickets: list[TicketRequest]):
         "failed": len([r for r in results if r.get("status") == "error"]),
         "results": results
     }
+
+
+@app.post("/api/opa/generate-from-document")
+async def generate_opa_from_document(file: UploadFile = File(...)):
+    """Generate OPA Rego policy code from an uploaded PDF/DOCX/DOC document."""
+    try:
+        filename = file.filename or "uploaded_policy_document"
+        content = await file.read()
+        if not content:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+        raw_text = extract_text_from_document(filename, content)
+        cleaned_text = re.sub(r"\s+", " ", raw_text).strip()
+        extracted = extract_policy_candidates(cleaned_text, limit=12)
+        rego_content = build_rego_policy(filename, extracted)
+
+        output_path = Path(__file__).parent / "data" / "generated_policies.rego"
+        output_path.write_text(rego_content, encoding="utf-8")
+
+        return {
+            "status": "success",
+            "document": filename,
+            "extracted_policy_candidates": extracted,
+            "policy_count": len(POLICY_RULES),
+            "rego_file": str(output_path),
+            "rego": rego_content,
+        }
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.error("Failed to generate OPA policies: %s", exc, exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to generate OPA policies") from exc
 
 
 # Error handlers

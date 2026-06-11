@@ -19,7 +19,7 @@ cp .env.template .env
 
 Edit `.env` and add your OpenRouter API key:
 ```
-OPENROUTER_API_KEY=your_api_key_here
+OPENROUTER_API_KEY=<your-openrouter-api-key>
 OPENROUTER_MODEL=openai/gpt-4-turbo
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 ```
@@ -138,7 +138,7 @@ ENVIRONMENT=development   # Set to 'development' for auto-reload
 LOG_LEVEL=info           # Logging level: debug, info, warning, error, critical
 
 # AI Configuration
-OPENROUTER_API_KEY=sk-...          # Required: OpenRouter API key
+OPENROUTER_API_KEY=<your-openrouter-api-key>  # Required: OpenRouter API key
 OPENROUTER_MODEL=nemetron/nemetron-3-super # NVidia Nemotron 3 Super (primary model)
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1  # API endpoint
 ```

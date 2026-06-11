@@ -53,7 +53,7 @@ FOUNDRY_MODEL_DEPLOYMENT_NAME=your-model-deployment-name
 
 **After:**
 ```env
-OPENROUTER_API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+OPENROUTER_API_KEY=<your-openrouter-api-key>
 OPENROUTER_MODEL=nemetron/nemetron-3-super
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 ```

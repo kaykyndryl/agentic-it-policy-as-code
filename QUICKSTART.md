@@ -134,7 +134,7 @@ Response:
 Your `.env` file is pre-configured:
 
 ```env
-OPENROUTER_API_KEY=...  # ✓ Configured
+OPENROUTER_API_KEY=<your-openrouter-api-key>  # ✓ Configured
 OPENROUTER_MODEL=nemetron/nemetron-3-super    # ✓ Set to NVidia Nemotron 3 Super (primary)
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 LOG_LEVEL=INFO

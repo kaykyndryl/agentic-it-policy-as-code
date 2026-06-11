@@ -359,7 +359,7 @@ Edit `.env` and configure:
 
 ```env
 # OpenRouter AI Configuration
-OPENROUTER_API_KEY=your_api_key_here
+OPENROUTER_API_KEY=<your-openrouter-api-key>
 OPENROUTER_MODEL=nemetron/nemetron-3-super
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 
