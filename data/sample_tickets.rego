@@ -1,0 +1,111 @@
+package data.sample_tickets
+
+# Rego-backed sample tickets used by local tests and UI/API demonstrations.
+# This replaces the legacy JSON data file.
+tickets := [
+  {
+    "ticket_id": "INC-001",
+    "timestamp": "2026-04-16T09:15:00Z",
+    "status": "new",
+    "title": "Password Reset Request",
+    "description": "User notifies IT that they forgot their password and cannot log in to their work account.",
+    "reporter": "john.smith@company.com",
+    "department": "Finance",
+    "affected_systems": ["Active Directory", "Email"],
+    "severity_reported": "low",
+    "urgency": "low",
+    "policy_implications": ["POL-001"],
+    "risk_level": 1,
+    "reason": "Common, documented issue with standard remediation"
+  },
+  {
+    "ticket_id": "INC-002",
+    "timestamp": "2026-04-16T10:30:00Z",
+    "status": "new",
+    "title": "Cannot Access VPN - MFA Issues",
+    "description": "Employee reports repeated MFA failures when attempting to connect to corporate VPN. They are working from home and unable to access necessary resources.",
+    "reporter": "jane.doe@company.com",
+    "department": "Engineering",
+    "affected_systems": ["VPN", "MFA"],
+    "severity_reported": "critical",
+    "urgency": "high",
+    "policy_implications": ["POL-002"],
+    "risk_level": 2,
+    "reason": "MFA access issues require troubleshooting verification and may need administrator intervention"
+  },
+  {
+    "ticket_id": "INC-003",
+    "timestamp": "2026-04-16T11:45:00Z",
+    "status": "new",
+    "title": "Suspicious Email Download - Potential Malware",
+    "description": "User received suspicious email with attachment claiming to be a software update. They downloaded and opened the attachment. Antivirus triggered alerts.",
+    "reporter": "mark.wilson@company.com",
+    "department": "Sales",
+    "affected_systems": ["Endpoints", "Email"],
+    "severity_reported": "critical",
+    "urgency": "high",
+    "policy_implications": ["POL-003", "POL-007"],
+    "risk_level": 3,
+    "reason": "Security incident with potential data breach risks - requires SOC investigation and incident response"
+  },
+  {
+    "ticket_id": "INC-004",
+    "timestamp": "2026-04-16T13:20:00Z",
+    "status": "new",
+    "title": "Monitor Disconnected - Hardware Issue",
+    "description": "Dual monitor setup - second monitor is not recognized by the system after laptop reboot.",
+    "reporter": "sarah.jones@company.com",
+    "department": "Marketing",
+    "affected_systems": ["Display Adapter", "USB"],
+    "severity_reported": "medium",
+    "urgency": "low",
+    "policy_implications": [],
+    "risk_level": 1,
+    "reason": "Standard hardware troubleshooting with known fixes"
+  },
+  {
+    "ticket_id": "INC-005",
+    "timestamp": "2026-04-16T14:50:00Z",
+    "status": "new",
+    "title": "File Share Access - Unauthorized Shared Folder Found",
+    "description": "During audit, discovered network file share with unrestricted access containing customer data. Cannot determine who created the share or why. User claims they don't know how it got there.",
+    "reporter": "security.team@company.com",
+    "department": "Security",
+    "affected_systems": ["File Share", "Network Storage"],
+    "severity_reported": "critical",
+    "urgency": "high",
+    "policy_implications": ["POL-003", "POL-005"],
+    "risk_level": 3,
+    "reason": "Data exposure incident with compliance violations - requires investigation and remediation"
+  },
+  {
+    "ticket_id": "INC-006",
+    "timestamp": "2026-04-16T15:30:00Z",
+    "status": "new",
+    "title": "Printer Driver Installation Request",
+    "description": "User needs to install a specific printer driver for a new network printer. Standard driver installation process.",
+    "reporter": "michael.brown@company.com",
+    "department": "Operations",
+    "affected_systems": ["Printer"],
+    "severity_reported": "low",
+    "urgency": "low",
+    "policy_implications": [],
+    "risk_level": 1,
+    "reason": "Low priority routine hardware setup"
+  },
+  {
+    "ticket_id": "INC-007",
+    "timestamp": "2026-04-16T16:15:00Z",
+    "status": "new",
+    "title": "Accessing Sensitive Customer Database - Requires Approval",
+    "description": "New team member requires access to the sensitive customer database for their role. Business justification provided. Needs manager approval and policy compliance check.",
+    "reporter": "hr.team@company.com",
+    "department": "HR",
+    "affected_systems": ["Database", "Access Control"],
+    "severity_reported": "medium",
+    "urgency": "medium",
+    "policy_implications": ["POL-005"],
+    "risk_level": 2,
+    "reason": "Access request requires approval workflow and compliance verification"
+  }
+]

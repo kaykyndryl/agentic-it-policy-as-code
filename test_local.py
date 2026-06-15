@@ -12,6 +12,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
+from src.rego_data import load_rego_data
+
 # Load environment variables
 load_dotenv(override=False)
 
@@ -24,15 +26,9 @@ logger = logging.getLogger(__name__)
 
 
 def load_sample_data():
-    """Load sample tickets and policies."""
-    data_dir = Path(__file__).parent / "data"
-    
-    with open(data_dir / "sample_tickets.json") as f:
-        tickets = json.load(f)
-    
-    with open(data_dir / "policies.json") as f:
-        policies = json.load(f)
-    
+    """Load sample tickets and policies from Rego files."""
+    tickets = load_rego_data("sample_tickets.rego", "tickets", "tickets")
+    policies = load_rego_data("policies.rego", "policies", "policies")
     return tickets["tickets"], policies["policies"]
 
 
@@ -156,9 +152,9 @@ async def test_ticket_analysis():
     print("✅ LOCAL TEST COMPLETE")
     print("=" * 80)
     print("\nNext Steps:")
-    print("1. Configure Foundry credentials in .env file")
+    print("1. Configure OPENROUTER_API_KEY in .env file")
     print("2. Run the HTTP server: python -m src.main")
-    print("3. Send ticket processing requests to http://localhost:8000")
+    print("3. Send ticket processing requests to http://localhost:8111")
     print("4. Use VS Code debugging (F5) for interactive development")
 
 

@@ -26,6 +26,7 @@ from src.opa_policy_builder import (
     extract_policy_candidates,
     extract_text_from_document,
 )
+from src.rego_data import load_rego_data
 
 # Load environment variables
 load_dotenv(override=False)
@@ -94,27 +95,13 @@ async def get_workflow():
 
 
 def load_policies():
-    """Load policies from data file."""
-    try:
-        policies_file = Path(__file__).parent / "data" / "policies.json"
-        if policies_file.exists():
-            with open(policies_file, "r") as f:
-                return json.load(f)
-    except Exception as e:
-        logger.error(f"Error loading policies: {e}")
-    return {"policies": []}
+    """Load policies from Rego data file."""
+    return load_rego_data("policies.rego", "policies", "policies")
 
 
 def load_sample_tickets():
-    """Load sample tickets from data file."""
-    try:
-        tickets_file = Path(__file__).parent / "data" / "sample_tickets.json"
-        if tickets_file.exists():
-            with open(tickets_file, "r") as f:
-                return json.load(f)
-    except Exception as e:
-        logger.error(f"Error loading sample tickets: {e}")
-    return {"tickets": []}
+    """Load sample tickets from Rego data file."""
+    return load_rego_data("sample_tickets.rego", "tickets", "tickets")
 
 
 # API Endpoints

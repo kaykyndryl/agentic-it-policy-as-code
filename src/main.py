@@ -318,7 +318,7 @@ async def simple_asyncio_server():
             <p>Multi-Agent Policy-Driven Ticket Routing</p>
         </header>
         
-        <div class="main">
+            <p>AI-powered ticket analysis and routing with OPA/Rego-based policy compliance</p>
             <div class="form-section">
                 <h2>Submit Ticket</h2>
                 <div class="demo-section">

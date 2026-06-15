@@ -6,24 +6,14 @@ policy lookup, risk assessment, and routing decisions.
 """
 
 import json
-import os
 from typing import Any, Optional
-from pathlib import Path
+
+from src.rego_data import load_rego_data
 
 
-# Load sample data
-def _load_json_file(filename: str) -> dict:
-    """Load JSON data files from the data directory."""
-    data_path = Path(__file__).parent.parent / "data" / filename
-    if not data_path.exists():
-        return {}
-    with open(data_path, 'r') as f:
-        return json.load(f)
-
-
-# Initialize data
-POLICIES_DATA = _load_json_file("policies.json")
-TICKETS_DATA = _load_json_file("sample_tickets.json")
+# Initialize data from Rego files
+POLICIES_DATA = load_rego_data("policies.rego", "policies", "policies")
+TICKETS_DATA = load_rego_data("sample_tickets.rego", "tickets", "tickets")
 
 
 class PolicyLookupTool:

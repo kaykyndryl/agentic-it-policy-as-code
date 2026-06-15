@@ -9,6 +9,8 @@ import json
 import os
 from pathlib import Path
 
+from src.rego_data import load_rego_data
+
 async def main():
     """Run comprehensive test with demo agents and sample data"""
     
@@ -17,16 +19,12 @@ async def main():
     print("=" * 100)
     print()
     
-    # Load sample data
-    data_path = Path(__file__).parent / "data"
-    
-    try:
-        with open(data_path / "sample_tickets.json") as f:
-            tickets_data = json.load(f)
-        with open(data_path / "policies.json") as f:
-            policies_data = json.load(f)
-    except FileNotFoundError as e:
-        print(f"❌ Error loading data files: {e}")
+    # Load sample data from Rego files
+    tickets_data = load_rego_data("sample_tickets.rego", "tickets", "tickets")
+    policies_data = load_rego_data("policies.rego", "policies", "policies")
+
+    if not tickets_data.get("tickets") or not policies_data.get("policies"):
+        print("❌ Error loading Rego data files from data/*.rego")
         return
     
     print("📊 Loaded Data:")
