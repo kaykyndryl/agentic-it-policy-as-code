@@ -17,7 +17,7 @@ The system is governed by **8 corporate IT policies**. Each policy defines requi
 
 ### Policy Structure
 
-```json
+```text
 {
   "id": "POL-001",
   "category": "password_management", 
@@ -482,8 +482,8 @@ python test_local.py
 ✅ Verify all tools work and policies load
 
 ### 2. Customize for Your Organization
-Edit `data/policies.json` with your policies
-Edit `data/sample_tickets.json` with your real scenarios
+Edit `data/policies.rego` with your policies
+Edit `data/sample_tickets.rego` with your real scenarios
 
 ### 3. Deploy to Foundry
 Once tested:

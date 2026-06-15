@@ -313,12 +313,12 @@ agentic-it-policy-as-code/
 │   ├── workflow.py             # Multi-agent orchestration pipeline
 │   └── tools.py                # Tool implementations (PolicyLookup, Risk, Routing)
 ├── data/
-│   ├── policies.json           # 8 corporate IT policies database
-│   ├── sample_tickets.json     # Sample tickets for testing (all 3 risk levels)
+│   ├── policies.rego           # 8 corporate IT policies database
+│   ├── sample_tickets.rego     # Sample tickets for testing (all 3 risk levels)
 │   └── generated_policies.rego # Last auto-generated OPA Rego policy file
 ├── .vscode/
-│   ├── launch.json             # Debug configurations
-│   └── tasks.json              # VS Code build tasks
+│   ├── launch configuration             # Debug configurations
+│   └── tasks configuration              # VS Code build tasks
 ├── .env.template               # Configuration template (placeholder values only)
 ├── agent.yaml                  # Agent configuration and workflow definition
 ├── requirements.txt            # Python dependencies
@@ -442,8 +442,7 @@ Available at `http://localhost:8000` — upload a policy PDF/DOCX and download g
 Example ticket API request:
 ```bash
 curl -X POST http://localhost:8111/tickets/process \
-  -H "Content-Type: application/json" \
-  -d '{
+    -d '{
     "ticket_id": "TKT-001",
     "title": "Password Reset Request",
     "description": "User forgot their password",
@@ -458,7 +457,7 @@ curl -X POST http://localhost:8111/tickets/process \
 
 ### VS Code Debug Configurations
 
-The project includes two debug configurations in `.vscode/launch.json`:
+The project includes two debug configurations in `.vscode/launch configuration`:
 
 1. **Python: Run Local Test** - Run the test suite
 2. **Python: Run Main Server** - Start the HTTP server
@@ -726,8 +725,7 @@ Using curl or Postman:
 ```bash
 # Test agent endpoint
 curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{
+    -d '{
     "messages": [
       {"role": "user", "content": "Process ticket TKT-001"}
     ]
@@ -816,7 +814,7 @@ Solution:
 
 ## 📝 Next Steps
 
-1. **Extend Policies**: Add custom IT policies for your organization in `data/policies.json`
+1. **Extend Policies**: Add custom IT policies for your organization in `data/policies.rego`
 2. **Upload Your Own Policy Docs**: Use the OPA Policy Builder (port 8000) to generate Rego rules from your own PDF/DOCX policy files
 3. **Custom Tools**: Implement connectors for ticketing platforms (ServiceNow, Jira, etc.)
 4. **Integration**: Connect to actual ticket databases and communication platforms

@@ -160,7 +160,7 @@ The workflow orchestration logic remains identical. Only the agent client implem
 
 **No changes needed!**
 
-Tools use local JSON data and don't call external AI services.
+Tools use local Rego data and don't call external AI services.
 
 ## Migration Steps Performed
 
@@ -196,8 +196,7 @@ python -m src.main
 
 # Terminal 2: Send request
 curl -X POST http://localhost:8111/tickets/process \
-  -H "Content-Type: application/json" \
-  -d '{
+    -d '{
     "ticket_id": "TKT-001",
     "title": "Password Reset Request",
     "description": "User forgot password",
@@ -209,7 +208,7 @@ curl -X POST http://localhost:8111/tickets/process \
 ```
 
 Expected response:
-```json
+```text
 {
   "ticket_id": "TKT-001",
   "status": "completed",

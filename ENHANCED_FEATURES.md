@@ -66,7 +66,7 @@ All three agent outputs are shown in the results panel:
 ### Offline Fallback Agents
 
 When OpenRouter API is unavailable, the system automatically uses `DemoAgents` — local rule-based implementations that:
-- Produce identical JSON structure (scoring_factors, reasoning, final_action)
+- Produce identical service structure (scoring_factors, reasoning, final_action)
 - Apply the same risk scoring logic heuristically
 - Return detailed multi-part reasoning
 - Require zero external dependencies

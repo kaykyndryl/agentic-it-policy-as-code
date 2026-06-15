@@ -108,7 +108,7 @@ The OPA Policy Builder allows you to:
 ### Request/Response Example — IT Ticket Management
 
 **Request:**
-```json
+```text
 POST http://localhost:8111/tickets/process
 {
   "title": "Password Reset Request",
@@ -121,7 +121,7 @@ POST http://localhost:8111/tickets/process
 ```
 
 **Response:**
-```json
+```text
 {
   "ticket_id": "TKT-1234567890",
   "timestamp": "2026-04-17T12:34:56.789000",

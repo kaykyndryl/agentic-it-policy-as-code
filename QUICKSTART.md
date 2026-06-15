@@ -23,12 +23,12 @@ agentic-it-policy-as-code/
 │   ├── workflow.py          # Multi-agent orchestration
 │   └── tools.py             # Policy lookup, risk evaluation, routing tools
 ├── data/
-│   ├── policies.json        # 8 corporate IT policies
-│   ├── sample_tickets.json  # Sample tickets (all 3 risk levels)
+│   ├── policies.rego        # 8 corporate IT policies
+│   ├── sample_tickets.rego  # Sample tickets (all 3 risk levels)
 │   └── generated_policies.rego  # Last generated OPA policy file
 ├── .vscode/
-│   ├── launch.json          # Debug configurations
-│   └── tasks.json           # Build/run tasks
+│   ├── launch configuration          # Debug configurations
+│   └── tasks configuration           # Build/run tasks
 ├── .env.template            # Configuration template (placeholder values)
 ├── agent.yaml              # Workflow configuration
 ├── requirements.txt        # Python dependencies
@@ -56,7 +56,7 @@ Your system now uses **OpenRouter AI** instead of Azure Foundry:
 2. Sign up (free)
 3. Copy your API key from settings
 4. Create `.env` from the template: `cp .env.template .env`
-5. Edit `.env` and paste your key as `OPENROUTER_API_KEY=<your-key-here>`
+5. Edit `.env` and paste your key as `OPENROUTER_API_KEY=<your-openrouter-api-key>`
 
 > **Security note:** Never commit `.env`. It is excluded by `.gitignore`. Only `.env.template` with placeholder values is tracked in git.
 
@@ -120,8 +120,7 @@ In another terminal:
 
 ```bash
 curl -X POST http://localhost:8111/tickets/process \
-  -H "Content-Type: application/json" \
-  -d '{
+    -d '{
     "ticket_id": "TKT-002",
     "title": "Cannot Access VPN",
     "description": "VPN connection fails",
@@ -133,7 +132,7 @@ curl -X POST http://localhost:8111/tickets/process \
 ```
 
 Response:
-```json
+```text
 {
   "ticket_id": "TKT-002",
   "status": "completed",
@@ -174,7 +173,7 @@ DEBUG_MODE=false
 ### Architecture
 
 ```
-Incoming Ticket (JSON)
+Incoming Ticket (rego-backed payload)
         ↓
    [HTTP Server]
         ↓
@@ -193,7 +192,7 @@ Incoming Ticket (JSON)
    ├─ Level 2-3? → Route to team
    └─ Returns: Action plan
         ↓
-   Response (JSON)
+   Response (service output)
 ```
 
 ### Example Flows
@@ -241,8 +240,7 @@ curl http://localhost:8111/health
 
 # Process ticket via API
 curl -X POST http://localhost:8111/tickets/process \
-  -H "Content-Type: application/json" \
-  -d @sample_ticket.json
+   -d @sample_ticket.rego
 ```
 
 ## 📊 Core Components
@@ -266,7 +264,7 @@ curl -X POST http://localhost:8111/tickets/process \
 
 ### Policies (Configurable)
 
-8 IT policies in `data/policies.json`:
+8 IT policies in `data/policies.rego`:
 - POL-001: Password Management
 - POL-002: Multi-Factor Authentication
 - POL-003: Data Classification & Handling
@@ -307,8 +305,8 @@ curl -X POST http://localhost:8111/tickets/process \
 - [ ] Test with curl
 
 ### Short Term (30 mins)
-- [ ] Customize policies in `data/policies.json`
-- [ ] Add real sample tickets in `data/sample_tickets.json`
+- [ ] Customize policies in `data/policies.rego`
+- [ ] Add real sample tickets in `data/sample_tickets.rego`
 - [ ] Test with your IT tickets
 - [ ] Debug with VS Code (F5)
 
@@ -386,7 +384,7 @@ $ python run_web.py
 
 - [ ] Open `http://localhost:8111` in a browser and try the four demo scenarios
 - [ ] Open `http://localhost:8000` and upload a PDF/DOCX policy document to generate OPA Rego rules
-- [ ] Customize policies in `data/policies.json`
+- [ ] Customize policies in `data/policies.rego`
 - [ ] Adjust risk thresholds in `src/demo_agents.py`
 - [ ] Add new demo scenarios in the `DEMO_TICKETS` dict inside `src/main.py`
 - [ ] Review `README.md` for full architecture and API reference
@@ -427,9 +425,9 @@ The system includes 7 sample tickets demonstrating all risk levels:
 
 ### View or Add Tickets
 
-Sample tickets are in `data/sample_tickets.json`. To add new tickets:
+Sample tickets are in `data/sample_tickets.rego`. To add new tickets:
 
-```json
+```text
 {
   "ticket_id": "TKT-008",
   "title": "Your ticket title",
@@ -443,9 +441,9 @@ Sample tickets are in `data/sample_tickets.json`. To add new tickets:
 
 ### Customize Policies
 
-Edit `data/policies.json` to add your organization's policies:
+Edit `data/policies.rego` to add your organization's policies:
 
-```json
+```text
 {
   "id": "POL-009",
   "category": "custom_category",
@@ -538,8 +536,8 @@ Lint Code              → Code quality check
 3. **src/agents.py** - Agent definitions and instructions
 4. **src/workflow.py** - Multi-agent orchestration logic
 5. **src/tools.py** - All tool implementations
-6. **data/policies.json** - Corporate policies
-7. **.vscode/launch.json** - Debug configurations
+6. **data/policies.rego** - Corporate policies
+7. **.vscode/launch configuration** - Debug configurations
 
 ---
 
@@ -590,7 +588,7 @@ Your system is built to be extended:
 
 - **Agent Framework Docs**: https://github.com/microsoft/agent-framework
 - **Azure AI Foundry**: https://www.microsoft.com/en-us/cloud-platform/azure-ai-foundry
-- **Python Issues**: Check terminal output and `.vscode/launch.json`
+- **Python Issues**: Check terminal output and `.vscode/launch configuration`
 
 ---
 
