@@ -53,26 +53,26 @@ POLICY_RULES: List[PolicyRule] = [
     PolicyRule("IT-028", "Critical service changes require executive notification", ["input.change.affects_critical_service", "not input.change.executive_notified"], "it"),
     PolicyRule("IT-029", "Production change cannot be scheduled during freeze window", ["input.change.environment == \"production\"", "input.change.in_freeze_window"], "it"),
     PolicyRule("IT-030", "Change closure requires validation evidence", ["input.change.status == \"closed\"", "not input.change.validation_evidence"], "it"),
-    PolicyRule("HC-001", "PHI access change requires privacy approval", ["input.change.affects_phi", "not input.change.privacy_officer_approved"], "healthcare"),
-    PolicyRule("HC-002", "PHI system change requires HIPAA risk assessment", ["input.change.affects_phi", "not input.change.hipaa_risk_assessment"], "healthcare"),
-    PolicyRule("HC-003", "Clinical system downtime requires patient safety plan", ["input.change.affects_clinical_system", "input.change.requires_outage", "not input.change.patient_safety_plan"], "healthcare"),
-    PolicyRule("HC-004", "EHR configuration change requires CMIO review", ["input.change.affects_ehr", "not input.change.cmio_approved"], "healthcare"),
-    PolicyRule("HC-005", "Medication workflow changes require pharmacy sign-off", ["input.change.affects_medication_workflow", "not input.change.pharmacy_approved"], "healthcare"),
-    PolicyRule("HC-006", "Lab interface changes require validation results", ["input.change.affects_lab_interface", "not input.change.interface_validation_report"], "healthcare"),
-    PolicyRule("HC-007", "Radiology integration changes require DICOM compatibility check", ["input.change.affects_radiology", "not input.change.dicom_compatibility_verified"], "healthcare"),
-    PolicyRule("HC-008", "Telehealth platform changes require security testing", ["input.change.affects_telehealth", "not input.change.security_test_completed"], "healthcare"),
-    PolicyRule("HC-009", "Changes impacting PHI exports require audit log verification", ["input.change.phi_export_enabled", "not input.change.audit_logging_verified"], "healthcare"),
-    PolicyRule("HC-010", "Patient portal changes require accessibility review", ["input.change.affects_patient_portal", "not input.change.accessibility_reviewed"], "healthcare"),
-    PolicyRule("HC-011", "Identity matching changes require data quality approval", ["input.change.affects_patient_identity_matching", "not input.change.data_quality_approved"], "healthcare"),
-    PolicyRule("HC-012", "Clinical decision support changes require physician sign-off", ["input.change.affects_clinical_decision_support", "not input.change.physician_approved"], "healthcare"),
-    PolicyRule("HC-013", "PHI retention rule changes require legal approval", ["input.change.affects_phi_retention", "not input.change.legal_approved"], "healthcare"),
-    PolicyRule("HC-014", "Third-party healthcare integration requires BAA confirmation", ["input.change.third_party_healthcare_vendor", "not input.change.baa_confirmed"], "healthcare"),
-    PolicyRule("HC-015", "Nursing workflow changes require nursing leadership sign-off", ["input.change.affects_nursing_workflow", "not input.change.nursing_leadership_approved"], "healthcare"),
-    PolicyRule("HC-016", "Clinical alert threshold changes require governance approval", ["input.change.affects_clinical_alert_thresholds", "not input.change.clinical_governance_approved"], "healthcare"),
-    PolicyRule("HC-017", "Patient consent workflow changes require compliance validation", ["input.change.affects_consent_workflow", "not input.change.compliance_validated"], "healthcare"),
-    PolicyRule("HC-018", "Changes to ePrescribing require controlled-substance checks", ["input.change.affects_eprescribing", "not input.change.controlled_substance_checks_complete"], "healthcare"),
-    PolicyRule("HC-019", "Medical device integration changes require biomedical review", ["input.change.affects_medical_device_integration", "not input.change.biomedical_approved"], "healthcare"),
-    PolicyRule("HC-020", "PHI-related incident response procedures must be updated before go-live", ["input.change.affects_phi", "input.change.go_live", "not input.change.incident_response_updated"], "healthcare"),
+    PolicyRule("MFG-001", "OT system changes require operational safety assessment", ["input.change.affects_ot_system", "not input.change.safety_assessment_completed"], "manufacturing"),
+    PolicyRule("MFG-002", "Production line changes require manufacturing engineer approval", ["input.change.affects_production_line", "not input.change.manufacturing_engineer_approved"], "manufacturing"),
+    PolicyRule("MFG-003", "Critical equipment modification requires equipment specialist sign-off", ["input.change.affects_critical_equipment", "not input.change.equipment_specialist_approved"], "manufacturing"),
+    PolicyRule("MFG-004", "Supply chain integration changes require vendor verification", ["input.change.affects_supply_chain_system", "not input.change.vendor_verified"], "manufacturing"),
+    PolicyRule("MFG-005", "Inventory management changes require reconciliation audit", ["input.change.affects_inventory_system", "not input.change.reconciliation_audit_completed"], "manufacturing"),
+    PolicyRule("MFG-006", "Maintenance system changes require maintenance team approval", ["input.change.affects_maintenance_system", "not input.change.maintenance_lead_approved"], "manufacturing"),
+    PolicyRule("MFG-007", "Quality control system changes require QA director sign-off", ["input.change.affects_quality_control", "not input.change.qa_director_approved"], "manufacturing"),
+    PolicyRule("MFG-008", "Plant safety system changes require facility manager authorization", ["input.change.affects_safety_system", "not input.change.facility_manager_approved"], "manufacturing"),
+    PolicyRule("MFG-009", "OT network changes require industrial control system security review", ["input.change.affects_ot_network", "not input.change.ics_security_reviewed"], "manufacturing"),
+    PolicyRule("MFG-010", "Manufacturing process parameter changes require process owner approval", ["input.change.affects_process_parameters", "not input.change.process_owner_approved"], "manufacturing"),
+    PolicyRule("GOV-001", "ITAR-controlled code changes require export compliance review", ["input.change.includes_itar_code", "not input.change.export_control_reviewed"], "government"),
+    PolicyRule("GOV-002", "Classified system changes require security clearance verification", ["input.change.affects_classified_system", "not input.change.clearance_verified"], "government"),
+    PolicyRule("GOV-003", "Foreign national access changes require CISO and legal approval", ["input.change.grants_foreign_national_access", "not input.change.ciso_legal_approved"], "government"),
+    PolicyRule("GOV-004", "EAR technology transfer changes require compliance certification", ["input.change.involves_ear_technology", "not input.change.ear_compliance_certified"], "government"),
+    PolicyRule("GOV-005", "Contract milestone deadline changes require customer notification", ["input.change.contract_milestone_impact", "not input.change.customer_notified"], "government"),
+    PolicyRule("GOV-006", "Government system interface changes require FISMA compliance audit", ["input.change.interfaces_with_gov_system", "not input.change.fisma_compliance_audit"], "government"),
+    PolicyRule("GOV-007", "Cybersecurity incident response plan changes require DoD approval", ["input.change.affects_dod_incident_plan", "not input.change.dod_approved"], "government"),
+    PolicyRule("GOV-008", "Data exfiltration controls changes require security operations review", ["input.change.affects_exfiltration_controls", "not input.change.secops_reviewed"], "government"),
+    PolicyRule("GOV-009", "Controlled unclassified information (CUI) handling changes require compliance validation", ["input.change.affects_cui_handling", "not input.change.cui_compliance_validated"], "government"),
+    PolicyRule("GOV-010", "Facility access control changes requiring government site visit approval", ["input.change.affects_facility_access", "not input.change.govt_site_approved"], "government"),
 ]
 
 
@@ -112,10 +112,11 @@ def extract_policy_candidates(text: str, limit: int = 12) -> List[str]:
         "prohibited",
         "approval",
         "change",
-        "hipaa",
-        "phi",
         "security",
         "audit",
+        "itar",
+        "export",
+        "compliance",
     )
 
     selected: List[str] = []
@@ -139,7 +140,7 @@ def build_rego_policy(document_name: str, extracted_candidates: List[str]) -> st
     lines.append("")
     lines.append("# Auto-generated from uploaded policy documentation")
     lines.append(f"# Source document: {document_name}")
-    lines.append("# Rule count: 50 (30 IT change control + 20 healthcare)")
+    lines.append("# Rule count: 50 (30 IT change control + 10 manufacturing + 10 government)")
     lines.append("")
     lines.append("# Extracted policy statements from the uploaded document")
     if extracted_candidates:
