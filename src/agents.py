@@ -265,7 +265,17 @@ Return ONLY a JSON object with these fields:
             risk_score = base_score
             
             # Scoring factors tracking
-            critical_keywords = ["malware", "breach", "security", "data exposure", "unauthorized", "compromised"]
+            critical_keywords = [
+                "malware",
+                "breach",
+                "security",
+                "data exposure",
+                "unauthorized",
+                "compromised",
+                "ddos",
+                "denial of service",
+                "dos attack",
+            ]
             keyword_bonus = 0
             found_keywords = [kw for kw in critical_keywords if kw in str(ticket_data).lower()]
             if found_keywords:
@@ -310,7 +320,7 @@ Return ONLY a JSON object with these fields:
                     "system_criticality_boost": system_bonus,
                     "policy_impact_boost": policy_bonus
                 },
-                "ai_recommended_severity": "medium"
+                "ai_recommended_severity": "critical" if risk_level == 3 else ("high" if risk_level == 2 else "low")
             }
         except Exception as e:
             logger.error(f"Error in risk assessment: {str(e)}", exc_info=True)

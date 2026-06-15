@@ -6,16 +6,17 @@
     <title>OPA Policy Builder</title>
     <style>
         :root {
-            --bg: #050505;
-            --panel: #101010;
-            --panel-soft: #161616;
+            --bg: #0f1a2e;
+            --panel: #1a2847;
+            --panel-soft: #162449;
             --text: #f5f5f5;
-            --muted: #a3a3a3;
-            --accent: #67e8f9;
-            --accent-2: #fb7185;
-            --success: #34d399;
-            --border: #2a2a2a;
-            --code-bg: #0b0f14;
+            --text-secondary: #94a3b8;
+            --muted: #64748b;
+            --accent: #22d3ee;
+            --accent-2: #a78bfa;
+            --success: #20c997;
+            --border: #22d3ee;
+            --code-bg: #0f172a;
         }
 
         * {
@@ -26,170 +27,201 @@
 
         body {
             min-height: 100vh;
-            font-family: "Space Grotesk", "Segoe UI", sans-serif;
+            font-family: "Inter", "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: var(--text);
-            background:
-                radial-gradient(circle at 15% 0%, rgba(103, 232, 249, 0.12) 0%, transparent 40%),
-                radial-gradient(circle at 85% 100%, rgba(251, 113, 133, 0.14) 0%, transparent 40%),
-                var(--bg);
-            padding: 28px;
+            background: var(--bg);
+            padding: 32px;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
             display: grid;
-            gap: 18px;
+            gap: 24px;
         }
 
         .hero {
-            border: 1px solid var(--border);
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
-            border-radius: 16px;
-            padding: 20px;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            background: rgba(26, 40, 71, 0.5);
+            border-radius: 12px;
+            padding: 28px;
         }
 
         .hero h1 {
-            font-size: clamp(1.5rem, 3vw, 2.25rem);
-            letter-spacing: 0.01em;
-            margin-bottom: 10px;
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 700;
+            letter-spacing: -0.015em;
+            margin-bottom: 12px;
         }
 
         .hero p {
-            color: var(--muted);
-            line-height: 1.55;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.95rem;
         }
 
         .grid {
             display: grid;
-            gap: 18px;
+            gap: 24px;
             grid-template-columns: 360px 1fr;
         }
 
         .panel {
             border: 1px solid var(--border);
-            border-radius: 16px;
+            border-radius: 12px;
             background: var(--panel);
-            padding: 18px;
+            padding: 24px;
         }
 
         .panel h2 {
-            font-size: 1rem;
-            margin-bottom: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
         }
 
         .muted {
             color: var(--muted);
             font-size: 0.9rem;
-            line-height: 1.5;
+            line-height: 1.6;
         }
 
         .upload-box {
-            margin-top: 14px;
-            border: 1px dashed #3b3b3b;
-            border-radius: 12px;
-            background: var(--panel-soft);
-            padding: 14px;
+            margin-top: 16px;
+            border: 1px dashed var(--border);
+            border-radius: 10px;
+            background: rgba(15, 23, 42, 0.8);
+            padding: 16px;
         }
 
         .upload-box input[type="file"] {
             width: 100%;
-            color: var(--muted);
-            margin-bottom: 10px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            font-size: 0.9rem;
         }
 
         button {
             width: 100%;
-            border: 0;
+            border: 1.5px solid var(--border);
             border-radius: 10px;
-            padding: 12px 14px;
-            font-weight: 700;
+            padding: 12px 16px;
+            font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
-            color: #032027;
-            background: linear-gradient(135deg, var(--accent), #22d3ee);
-            transition: transform 0.15s ease, box-shadow 0.2s ease;
-            box-shadow: 0 8px 24px rgba(103, 232, 249, 0.2);
+            color: var(--text);
+            background: transparent;
+            transition: all 0.2s ease;
         }
 
-        button:hover { transform: translateY(-1px); }
+        button:hover {
+            background: rgba(34, 211, 238, 0.1);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
+            transform: translateY(-2px);
+        }
+
         button:disabled {
             cursor: not-allowed;
-            opacity: 0.65;
+            opacity: 0.5;
             transform: none;
-            box-shadow: none;
         }
 
+        .button-row {
+            margin-top: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .save-btn {
+            border-color: var(--accent-2);
+            color: var(--text);
+        }
+
+        .save-btn:hover {
+            background: rgba(167, 139, 250, 0.1);
+            box-shadow: 0 0 20px rgba(167, 139, 250, 0.2);
+        }
+
+
+
         .status {
-            margin-top: 10px;
+            margin-top: 12px;
             min-height: 1.3em;
             color: var(--muted);
             font-size: 0.9rem;
         }
 
         .status.ok { color: var(--success); }
-        .status.err { color: #fca5a5; }
+        .status.err { color: #ff6b6b; }
 
         .code-panel {
-            border: 1px solid #253141;
-            border-radius: 14px;
+            border: 1px solid rgba(34, 211, 238, 0.3);
+            border-radius: 12px;
             overflow: hidden;
             background: var(--code-bg);
         }
 
         .code-header {
-            border-bottom: 1px solid #1f2937;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.2);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            padding: 10px 12px;
-            background: #0f1723;
+            gap: 12px;
+            padding: 14px 16px;
+            background: rgba(15, 23, 42, 0.8);
         }
 
         .code-header .title {
             font-size: 0.9rem;
-            color: #cbd5e1;
+            font-weight: 600;
+            color: var(--accent);
         }
 
         .code-header .meta {
-            font-size: 0.8rem;
-            color: #94a3b8;
+            font-size: 0.85rem;
+            color: var(--muted);
         }
 
         pre {
             margin: 0;
-            padding: 14px;
-            font-family: "JetBrains Mono", "Fira Code", monospace;
-            font-size: 0.84rem;
-            line-height: 1.5;
-            color: #e2e8f0;
+            padding: 16px;
+            font-family: "JetBrains Mono", "Fira Code", "Menlo", monospace;
+            font-size: 0.85rem;
+            line-height: 1.6;
+            color: var(--text);
             overflow: auto;
             max-height: 70vh;
             white-space: pre;
         }
 
         .extract-list {
-            margin-top: 14px;
-            border-top: 1px solid var(--border);
-            padding-top: 10px;
+            margin-top: 18px;
+            border-top: 1px solid rgba(34, 211, 238, 0.2);
+            padding-top: 14px;
         }
 
         .extract-list h3 {
             font-size: 0.9rem;
-            margin-bottom: 8px;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
 
         .extract-list ul {
             padding-left: 16px;
-            color: var(--muted);
+            color: var(--text-secondary);
             display: grid;
-            gap: 6px;
+            gap: 8px;
+            font-size: 0.9rem;
         }
 
         @media (max-width: 900px) {
-            body { padding: 14px; }
+            body { padding: 18px; }
             .grid { grid-template-columns: 1fr; }
             pre { max-height: 48vh; }
+            .button-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -197,7 +229,7 @@
     <main class="container">
         <section class="hero">
             <h1>OPA Policy Builder: IT Change Control</h1>
-            <p>Upload a PDF or Word document and generate a complete Open Policy Agent Rego file containing 50 deny policies. The generator extracts policy-like statements from your document and includes them for traceability.</p>
+            <p>Upload a PDF or Word document and generate a complete Open Policy Agent Rego file with as many policies as needed based on detected domains. Policies are grouped and sorted by labels for traceability.</p>
         </section>
 
         <section class="grid">
@@ -206,7 +238,11 @@
                 <p class="muted">Supported formats: PDF, DOCX, DOC. The backend extracts text and maps it into an OPA baseline policy set.</p>
                 <div class="upload-box">
                     <input id="policyFile" type="file" accept=".pdf,.doc,.docx" />
-                    <button id="generateBtn">Generate 50 OPA Policies</button>
+                    <button id="generateBtn">Generate OPA Policies</button>
+                    <div class="button-row">
+                        <button id="saveRegoBtn" class="save-btn" disabled>Save as .rego</button>
+                        <button id="saveTextBtn" class="save-btn" disabled>Save as .txt</button>
+                    </div>
                     <div id="status" class="status"></div>
                 </div>
                 <div class="extract-list">
@@ -236,11 +272,51 @@
         const regoOutputEl = document.getElementById("regoOutput");
         const extractedListEl = document.getElementById("extractedList");
         const policyMetaEl = document.getElementById("policyMeta");
+        const saveRegoBtn = document.getElementById("saveRegoBtn");
+        const saveTextBtn = document.getElementById("saveTextBtn");
+
+        let generatedRego = "";
+        let generatedBaseName = "generated_policies";
 
         function setStatus(message, cls) {
             statusEl.textContent = message;
             statusEl.className = "status " + (cls || "");
         }
+
+        function sanitizeBaseName(fileName) {
+            return (fileName || "generated_policies")
+                .replace(/\.[^.]+$/, "")
+                .replace(/[^a-zA-Z0-9-_]+/g, "_")
+                .replace(/^_+|_+$/g, "")
+                || "generated_policies";
+        }
+
+        function downloadContent(fileName, mimeType, content) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const anchor = document.createElement("a");
+            anchor.href = url;
+            anchor.download = fileName;
+            document.body.appendChild(anchor);
+            anchor.click();
+            anchor.remove();
+            URL.revokeObjectURL(url);
+        }
+
+        function updateSaveButtons(enabled) {
+            saveRegoBtn.disabled = !enabled;
+            saveTextBtn.disabled = !enabled;
+        }
+
+        saveRegoBtn.addEventListener("click", () => {
+            if (!generatedRego) return;
+            downloadContent(`${generatedBaseName}.rego`, "text/plain;charset=utf-8", generatedRego);
+        });
+
+        saveTextBtn.addEventListener("click", () => {
+            if (!generatedRego) return;
+            downloadContent(`${generatedBaseName}.txt`, "text/plain;charset=utf-8", generatedRego);
+        });
 
         generateBtn.addEventListener("click", async () => {
             const fileInput = document.getElementById("policyFile");
@@ -256,6 +332,7 @@
 
             setStatus("Generating policies from uploaded document...", "");
             generateBtn.disabled = true;
+            updateSaveButtons(false);
             extractedListEl.innerHTML = "<li>Extracting policy candidates...</li>";
 
             try {
@@ -270,9 +347,19 @@
                     throw new Error(data.detail || "Failed to generate policies");
                 }
 
-                regoOutputEl.textContent = data.rego || "";
-                policyMetaEl.textContent = `${data.policy_count} deny policies generated`;
+                generatedRego = data.rego || "";
+                generatedBaseName = sanitizeBaseName(data.document);
+                regoOutputEl.textContent = generatedRego;
+
+                const counts = data.policy_counts_by_label || {};
+                const labels = Object.entries(counts)
+                    .map(([label, count]) => `${label}: ${count}`)
+                    .join(" | ");
+                policyMetaEl.textContent = labels
+                    ? `${data.policy_count} policies generated (${labels})`
+                    : `${data.policy_count} policies generated`;
                 setStatus("OPA policy file generated successfully.", "ok");
+                updateSaveButtons(Boolean(generatedRego));
 
                 const extracted = data.extracted_policy_candidates || [];
                 if (extracted.length > 0) {
@@ -285,6 +372,8 @@
             } catch (error) {
                 setStatus(error.message || "An error occurred.", "err");
                 policyMetaEl.textContent = "Generation failed";
+                generatedRego = "";
+                updateSaveButtons(false);
             } finally {
                 generateBtn.disabled = false;
             }

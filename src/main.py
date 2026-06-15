@@ -172,140 +172,147 @@ async def simple_asyncio_server():
     <title>IT Ticket Management System</title>
     <style>
         :root {
-            --bg-0: #0b1020;
-            --bg-1: #121a2f;
-            --bg-2: #1b2642;
-            --card: #121826;
-            --card-soft: #1a2336;
-            --line: #2a3550;
-            --text-1: #e6ecff;
-            --text-2: #a6b3d1;
-            --accent: #5eead4;
-            --accent-2: #38bdf8;
-            --ok: #22c55e;
-            --warn: #f59e0b;
-            --bad: #ef4444;
+            --bg-0: #0f1a2e;
+            --bg-1: #1a2847;
+            --bg-2: #162449;
+            --card: #1a2847;
+            --card-soft: #162449;
+            --line: #22d3ee;
+            --text-1: #f5f5f5;
+            --text-2: #94a3b8;
+            --accent: #22d3ee;
+            --accent-2: #a78bfa;
+            --ok: #20c997;
+            --warn: #fbbf24;
+            --bad: #ff6b6b;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-            background:
-                radial-gradient(circle at 10% 10%, #1e2d4d 0%, transparent 45%),
-                radial-gradient(circle at 80% 0%, #1a365d 0%, transparent 35%),
-                linear-gradient(160deg, var(--bg-0) 0%, #0f172a 45%, #0b1223 100%);
+            font-family: "Inter", "Space Grotesk", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg-0);
             min-height: 100vh;
-            padding: 20px;
+            padding: 32px;
             color: var(--text-1);
         }
         .container { max-width: 1200px; margin: 0 auto; }
-        header { text-align: center; color: var(--text-1); margin-bottom: 28px; }
-        header h1 { font-size: 2.5em; margin-bottom: 10px; }
-        header p { font-size: 1.1em; color: var(--text-2); }
-        .main { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        header { text-align: center; color: var(--text-1); margin-bottom: 32px; }
+        header h1 { font-size: 2.5em; font-weight: 700; margin-bottom: 12px; }
+        header p { font-size: 1.05em; color: var(--text-2); margin: 8px 0; }
+        .main { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
         .form-section, .results-section {
-            background: linear-gradient(180deg, var(--card) 0%, var(--card-soft) 100%);
-            border-radius: 14px;
+            background: var(--card);
+            border-radius: 12px;
             border: 1px solid var(--line);
-            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
-            padding: 30px;
+            box-shadow: 0 4px 12px rgba(34, 211, 238, 0.1);
+            padding: 32px;
         }
         .form-section h2, .results-section h2 {
             color: var(--accent);
-            margin-bottom: 20px;
-            border-bottom: 2px solid rgba(94, 234, 212, 0.3);
-            padding-bottom: 10px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(34, 211, 238, 0.3);
+            padding-bottom: 14px;
+            font-weight: 600;
         }
         .demo-section {
             margin-bottom: 24px;
-            padding: 14px;
-            border: 1px solid var(--line);
+            padding: 16px;
+            border: 1px dashed var(--line);
             border-radius: 10px;
-            background: rgba(56, 189, 248, 0.06);
+            background: rgba(34, 211, 238, 0.05);
         }
         .demo-section h3 {
-            color: var(--accent-2);
-            margin-bottom: 12px;
+            color: var(--accent);
+            margin-bottom: 14px;
             font-size: 0.95em;
             text-transform: uppercase;
             letter-spacing: 0.08em;
+            font-weight: 600;
         }
         .demo-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
         }
         .demo-btn {
             width: 100%;
             text-align: left;
             border: 1px solid var(--line);
-            background: #111a2b;
+            background: transparent;
             color: var(--text-1);
-            padding: 10px 12px;
+            padding: 12px 14px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.85em;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
         }
         .demo-btn:hover {
-            border-color: var(--accent-2);
-            background: #16223a;
-            transform: translateY(-1px);
+            border-color: var(--accent);
+            background: rgba(34, 211, 238, 0.1);
+            transform: translateY(-2px);
         }
         .demo-sev {
             float: right;
-            font-weight: 700;
+            font-weight: 600;
             opacity: 0.9;
         }
         .sev-critical { color: var(--bad); }
         .sev-medium { color: var(--warn); }
         .sev-low { color: var(--ok); }
-        .form-group { margin-bottom: 20px; }
-        label { display: block; color: var(--text-1); font-weight: 600; margin-bottom: 8px; }
+        .form-group { margin-bottom: 22px; }
+        label { display: block; color: var(--text-1); font-weight: 600; margin-bottom: 10px; }
         input, select, textarea {
             width: 100%;
-            padding: 12px;
+            padding: 12px 14px;
             border: 1px solid var(--line);
             border-radius: 8px;
             font-size: 1em;
             font-family: inherit;
             color: var(--text-1);
-            background: #0f1726;
+            background: rgba(15, 23, 42, 0.8);
+            transition: all 0.2s ease;
         }
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: var(--accent-2);
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.18);
+            box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
+            background: rgba(26, 40, 71, 0.8);
         }
-        textarea { resize: vertical; min-height: 80px; }
-        .systems-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        textarea { resize: vertical; min-height: 100px; }
+        .systems-group { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 12px; }
         .checkbox { display: flex; align-items: center; }
-        .checkbox input { width: auto; margin-right: 8px; }
+        .checkbox input { width: auto; margin-right: 10px; }
         .checkbox label { margin: 0; font-weight: normal; color: var(--text-2); }
         button {
-            background: linear-gradient(90deg, var(--accent-2), #2563eb);
-            color: #eaf7ff;
-            padding: 12px 30px;
-            border: none;
+            background: transparent;
+            color: var(--text-1);
+            padding: 12px 24px;
+            border: 1.5px solid var(--accent);
             border-radius: 8px;
             font-size: 1em;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
-        button:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3); }
-        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
-        .loading { display: none; color: var(--accent-2); text-align: center; }
-        .spinner { border: 3px solid #1f2a3f; border-top: 3px solid var(--accent-2); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        button:hover {
+            transform: translateY(-2px);
+            background: rgba(34, 211, 238, 0.1);
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
+        }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .loading { display: none; color: var(--accent); text-align: center; }
+        .spinner { border: 3px solid rgba(34, 211, 238, 0.2); border-top: 3px solid var(--accent); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .result { margin-top: 20px; padding: 20px; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.9em; max-height: 500px; overflow-y: auto; background: #0f1726; border: 1px solid var(--line); color: var(--text-2); }
-        .result.success { background: #0f1f1a; border-left: 4px solid var(--ok); }
-        .result.error { background: #2a1212; border-left: 4px solid var(--bad); }
-        .result-title { font-weight: bold; color: var(--text-1); margin-bottom: 10px; }
-        .policies { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        .result { margin-top: 24px; padding: 20px; border-radius: 8px; font-family: "JetBrains Mono", "Fira Code", monospace; font-size: 0.9em; max-height: 500px; overflow-y: auto; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(34, 211, 238, 0.3); color: var(--text-2); }
+        .result.success { background: rgba(32, 201, 151, 0.08); border-left: 4px solid var(--ok); }
+        .result.error { background: rgba(255, 107, 107, 0.08); border-left: 4px solid var(--bad); }
+        .result-title { font-weight: bold; color: var(--text-1); margin-bottom: 12px; }
+        .policies { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
         .policy-item { display: flex; align-items: center; }
         .policy-item input { width: auto; margin-right: 8px; }
         .policy-item label { margin: 0; font-weight: normal; color: var(--text-2); }
         pre { white-space: pre-wrap; word-wrap: break-word; }
         @media (max-width: 900px) {
+            body { padding: 18px; }
             .main { grid-template-columns: 1fr; }
             .demo-grid { grid-template-columns: 1fr; }
         }
@@ -316,9 +323,10 @@ async def simple_asyncio_server():
         <header>
             <h1>🎫 IT Ticket Management System</h1>
             <p>Multi-Agent Policy-Driven Ticket Routing</p>
-        </header>
-        
             <p>AI-powered ticket analysis and routing with OPA/Rego-based policy compliance</p>
+        </header>
+
+        <div class="main">
             <div class="form-section">
                 <h2>Submit Ticket</h2>
                 <div class="demo-section">
@@ -543,19 +551,30 @@ async def simple_asyncio_server():
                         <div><strong>Ticket ID:</strong> ${result.ticket_id}</div>
                         <div><strong>Status:</strong> ${result.status}</div>
                         
-                        <div style="margin-top: 20px; padding: 15px; background: #0f1726; border: 1px solid #2a3550; border-radius: 8px;">
+                        <div style="margin-top: 20px; padding: 15px; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(34, 211, 238, 0.3); border-radius: 8px;">
                             <div style="font-weight: bold; color: #5eead4; margin-bottom: 10px;">🔍 Risk Assessment:</div>
+                            <div><strong>User Reported Severity:</strong> <span style="color:#a6b3d1; text-transform:uppercase;">${riskAssessment.user_reported_severity || 'N/A'}</span></div>
+                            <div><strong>Validated Severity Used for Scoring:</strong> <span style="font-weight: bold; color: ${riskAssessment.validated_severity === 'critical' ? '#ef4444' : riskAssessment.validated_severity === 'high' ? '#f59e0b' : riskAssessment.validated_severity === 'medium' ? '#38bdf8' : '#22c55e'}; text-transform:uppercase;">${riskAssessment.validated_severity || 'N/A'}</span></div>
+                            <div><strong>AI Recommended Severity:</strong> <span style="font-weight: 700; text-transform: uppercase;">${riskAssessment.ai_recommended_severity || 'N/A'}</span></div>
+                            ${riskAssessment.severity_adjusted ? `
+                            <div style="margin-top: 10px; padding: 10px; background: rgba(255, 107, 107, 0.08); border-left: 3px solid #ff6b6b; border-radius: 4px; color: #ff9999;">
+                                <div style="font-weight: 700; margin-bottom: 6px;">⚠️ Severity Validation Adjustment Applied</div>
+                                <div style="font-size: 0.9em; line-height: 1.5;">
+                                    ${Array.isArray(riskAssessment.severity_adjustment_reasons) && riskAssessment.severity_adjustment_reasons.length ? riskAssessment.severity_adjustment_reasons.map(r => `• ${r}`).join('<br>') : '• Severity was auto-corrected based on detected incident keywords.'}
+                                </div>
+                            </div>
+                            ` : ''}
                             <div><strong>Risk Score:</strong> <span style="font-size: 1.3em; color: #38bdf8; font-weight: bold;">${riskAssessment.risk_score || 'N/A'}/100</span></div>
                             <div><strong>Risk Level:</strong> <span style="font-weight: bold; color: ${riskAssessment.risk_level === 3 ? '#f44336' : riskAssessment.risk_level === 2 ? '#ff9800' : '#4caf50'};">Level ${riskAssessment.risk_level || 'N/A'}</span></div>
                             <div style="margin-top: 10px;"><strong>Classification:</strong> ${riskAssessment.classification || 'N/A'}</div>
                             
-                            <div style="margin-top: 15px; padding: 10px; background: #111a2b; border-left: 3px solid #38bdf8; border-radius: 4px;">
+                            <div style="margin-top: 15px; padding: 10px; background: rgba(34, 211, 238, 0.08); border-left: 3px solid #22d3ee; border-radius: 4px;">
                                 <div style="font-weight: 600; color: #e6ecff; margin-bottom: 8px;">📊 AI Reasoning:</div>
                                 <div style="font-size: 0.95em; line-height: 1.5; color: #a6b3d1;">${riskAssessment.reasoning || 'N/A'}</div>
                             </div>
                             
                             ${riskAssessment.scoring_breakdown ? `
-                            <div style="margin-top: 15px; padding: 10px; background: #111a2b; border-left: 3px solid #22c55e; border-radius: 4px;">
+                            <div style="margin-top: 15px; padding: 10px; background: rgba(32, 201, 151, 0.08); border-left: 3px solid #20c997; border-radius: 4px;">
                                 <div style="font-weight: 600; color: #e6ecff; margin-bottom: 8px;">📈 Scoring Breakdown:</div>
                                 <div style="font-size: 0.9em; line-height: 1.6; color: #a6b3d1;">
                                     <div>• Severity Base: <strong>${riskAssessment.scoring_breakdown.severity_base}</strong> points</div>
@@ -571,7 +590,7 @@ async def simple_asyncio_server():
                         </div>
                         
                         <div style="margin-top: 20px;"><strong>🎯 Routing Decision:</strong></div>
-                        <pre style="background: #0f1726; color: #a6b3d1; border: 1px solid #2a3550; padding: 10px; border-radius: 8px;">${JSON.stringify(finalAction.routing || finalAction, null, 2)}</pre>
+                        <pre style="background: rgba(15, 23, 42, 0.8); color: #94a3b8; border: 1px solid rgba(34, 211, 238, 0.3); padding: 10px; border-radius: 8px;">${JSON.stringify(finalAction.routing || finalAction, null, 2)}</pre>
                     `;
                 }
                 

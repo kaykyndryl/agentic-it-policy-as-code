@@ -39,6 +39,61 @@ class TicketProcessingWorkflow:
         self.analyzer = analyzer
         self.risk_assessor = risk_assessor
         self.router = router
+
+    @staticmethod
+    def _severity_rank(severity: str) -> int:
+        mapping = {"low": 1, "medium": 2, "high": 3, "critical": 4}
+        return mapping.get((severity or "").lower(), 2)
+
+    @staticmethod
+    def _rank_to_severity(rank: int) -> str:
+        reverse = {1: "low", 2: "medium", 3: "high", 4: "critical"}
+        return reverse.get(rank, "medium")
+
+    def _validate_ticket_input(self, ticket_data: dict) -> dict:
+        """Validate severity consistency and auto-correct obvious mismatches.
+
+        Example: DDoS + low severity => auto-escalate to critical.
+        """
+        title = str(ticket_data.get("title", "")).lower()
+        description = str(ticket_data.get("description", "")).lower()
+        combined = f"{title} {description}"
+
+        reported = str(ticket_data.get("severity_reported", "medium")).lower()
+        reported_rank = self._severity_rank(reported)
+        min_required_rank = 1
+        reasons: list[str] = []
+
+        # Threat/incident patterns that require at least critical severity.
+        critical_patterns = [
+            "ddos",
+            "dos attack",
+            "denial of service",
+            "ransomware",
+            "malware",
+            "breach",
+            "data exposure",
+            "unauthorized access",
+            "compromised",
+        ]
+
+        if any(p in combined for p in critical_patterns):
+            min_required_rank = max(min_required_rank, 4)
+            reasons.append(
+                "Detected critical security/availability indicators "
+                "(e.g., DDoS, malware, breach) that require CRITICAL severity"
+            )
+
+        validated_rank = max(reported_rank, min_required_rank)
+        validated = self._rank_to_severity(validated_rank)
+        adjusted = validated_rank != reported_rank
+
+        return {
+            "reported_severity": reported,
+            "validated_severity": validated,
+            "severity_adjusted": adjusted,
+            "validation_reasons": reasons,
+        }
     
     async def process_ticket(self, ticket_data: dict) -> dict:
         """
@@ -64,6 +119,10 @@ class TicketProcessingWorkflow:
         
         ticket_id = ticket_data.get("ticket_id", "UNKNOWN")
         logger.info(f"Starting workflow for ticket {ticket_id}")
+
+        input_validation = self._validate_ticket_input(ticket_data)
+        original_reported_severity = input_validation["reported_severity"]
+        ticket_data["severity_reported"] = input_validation["validated_severity"]
         
         result = {
             "ticket_id": ticket_id,
@@ -86,7 +145,8 @@ class TicketProcessingWorkflow:
                 "status": "completed",
                 "content": analysis_content,
                 "identified_policies": identified_policies,
-                "identified_policies_full": full_policies
+                "identified_policies_full": full_policies,
+                "input_validation": input_validation,
             }
             logger.info(f"Stage 1 completed for ticket {ticket_id} - Identified {len(identified_policies)} policies")
             
@@ -100,6 +160,7 @@ class TicketProcessingWorkflow:
             # Build risk calculation breakdown
             risk_calculation = {
                 "base_severity": ticket_data.get('severity_reported', 'medium').upper(),
+                "original_reported_severity": original_reported_severity.upper(),
                 "affected_systems_count": len(ticket_data.get('affected_systems', [])),
                 "affected_systems": ticket_data.get('affected_systems', []),
                 "policies_affected_count": len(identified_policies),
@@ -117,7 +178,12 @@ class TicketProcessingWorkflow:
                 "risk_level": risk_assessment.get("risk_level"),
                 "classification": risk_assessment.get("classification"),
                 "reasoning": risk_assessment.get("reasoning"),
-                "calculation_breakdown": risk_calculation
+                "calculation_breakdown": risk_calculation,
+                "user_reported_severity": original_reported_severity,
+                "validated_severity": ticket_data.get("severity_reported", "medium"),
+                "severity_adjusted": input_validation.get("severity_adjusted", False),
+                "severity_adjustment_reasons": input_validation.get("validation_reasons", []),
+                "ai_recommended_severity": risk_assessment.get("ai_recommended_severity", ticket_data.get("severity_reported", "medium")),
             }
             
             # Include scoring_breakdown if provided by agent (for detailed reasoning display)

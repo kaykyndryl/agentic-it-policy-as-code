@@ -6,7 +6,7 @@ import io
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 
 from docx import Document
 from pypdf import PdfReader
@@ -75,6 +75,104 @@ POLICY_RULES: List[PolicyRule] = [
     PolicyRule("GOV-010", "Facility access control changes requiring government site visit approval", ["input.change.affects_facility_access", "not input.change.govt_site_approved"], "government"),
 ]
 
+DOMAIN_DISPLAY_ORDER = {
+    "it": 0,
+    "manufacturing": 1,
+    "government": 2,
+}
+
+DOMAIN_LABELS = {
+    "it": "IT",
+    "manufacturing": "Manufacturing",
+    "government": "Government",
+}
+
+DOMAIN_KEYWORDS = {
+    "it": (
+        "it",
+        "change",
+        "deployment",
+        "security",
+        "database",
+        "infrastructure",
+        "cab",
+        "iam",
+        "firewall",
+    ),
+    "manufacturing": (
+        "manufacturing",
+        "ot",
+        "production line",
+        "plant",
+        "industrial",
+        "equipment",
+        "quality control",
+        "maintenance",
+        "ics",
+    ),
+    "government": (
+        "government",
+        "contract",
+        "itar",
+        "ear",
+        "fisma",
+        "dod",
+        "cui",
+        "classified",
+        "export control",
+        "clearance",
+    ),
+}
+
+
+def _domain_label(domain: str) -> str:
+    return DOMAIN_LABELS.get(domain, domain.upper())
+
+
+def _sorted_rules(rules: List[PolicyRule]) -> List[PolicyRule]:
+    return sorted(
+        rules,
+        key=lambda rule: (
+            DOMAIN_DISPLAY_ORDER.get(rule.domain, 99),
+            _domain_label(rule.domain),
+            rule.rule_id,
+        ),
+    )
+
+
+def _domain_is_relevant(source_text: str, domain: str) -> bool:
+    lowered = source_text.lower()
+    return any(keyword in lowered for keyword in DOMAIN_KEYWORDS.get(domain, ()))
+
+
+def select_policy_rules(document_text: str) -> List[PolicyRule]:
+    """Select policies relevant to uploaded content, then return them label-sorted."""
+    text = re.sub(r"\s+", " ", document_text or "").strip()
+    if not text:
+        return _sorted_rules(POLICY_RULES)
+
+    selected_domains = {
+        domain for domain in DOMAIN_KEYWORDS if _domain_is_relevant(text, domain)
+    }
+
+    # Keep baseline IT controls in all generated policies; add other domains when relevant.
+    selected_domains.add("it")
+
+    selected_rules = [
+        rule for rule in POLICY_RULES if rule.domain in selected_domains
+    ]
+
+    return _sorted_rules(selected_rules)
+
+
+def count_rules_by_domain(rules: List[PolicyRule]) -> Dict[str, int]:
+    """Return per-domain counts using display labels as keys."""
+    counts: Dict[str, int] = {}
+    for rule in rules:
+        label = _domain_label(rule.domain)
+        counts[label] = counts.get(label, 0) + 1
+    return counts
+
 
 def extract_text_from_document(filename: str, content: bytes) -> str:
     """Extract plain text from supported document formats."""
@@ -133,14 +231,21 @@ def extract_policy_candidates(text: str, limit: int = 12) -> List[str]:
     return selected
 
 
-def build_rego_policy(document_name: str, extracted_candidates: List[str]) -> str:
-    """Generate a deterministic OPA policy file with 50 deny rules."""
+def build_rego_policy(document_name: str, extracted_candidates: List[str], selected_rules: List[PolicyRule]) -> str:
+    """Generate deterministic OPA policy file with label-grouped deny rules."""
     lines: List[str] = []
     lines.append("package policy.change_control")
     lines.append("")
     lines.append("# Auto-generated from uploaded policy documentation")
     lines.append(f"# Source document: {document_name}")
-    lines.append("# Rule count: 50 (30 IT change control + 10 manufacturing + 10 government)")
+    lines.append(f"# Rule count: {len(selected_rules)}")
+
+    domain_counts = count_rules_by_domain(selected_rules)
+    if domain_counts:
+        domain_summary = ", ".join(
+            f"{label}: {count}" for label, count in domain_counts.items()
+        )
+        lines.append(f"# Domain labels: {domain_summary}")
     lines.append("")
     lines.append("# Extracted policy statements from the uploaded document")
     if extracted_candidates:
@@ -151,8 +256,8 @@ def build_rego_policy(document_name: str, extracted_candidates: List[str]) -> st
         lines.append("# No policy-like statements were confidently extracted; using baseline policy library.")
     lines.append("")
 
-    for rule in POLICY_RULES:
-        lines.append(f"# {rule.rule_id} [{rule.domain}]")
+    for rule in selected_rules:
+        lines.append(f"# [{_domain_label(rule.domain)}] {rule.rule_id}")
         lines.append("deny[msg] {")
         for condition in rule.conditions:
             lines.append(f"  {condition}")

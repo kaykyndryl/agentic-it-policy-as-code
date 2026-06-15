@@ -101,7 +101,20 @@ class DemoRiskAssessmentAgent:
         risk_score = base_score
         
         # Adjust for critical keywords
-        critical_keywords = ["malware", "breach", "security", "data exposure", "unauthorized", "compromised", "ransomware", "exploit", "vulnerability"]
+        critical_keywords = [
+            "malware",
+            "breach",
+            "security",
+            "data exposure",
+            "unauthorized",
+            "compromised",
+            "ransomware",
+            "exploit",
+            "vulnerability",
+            "ddos",
+            "denial of service",
+            "dos attack",
+        ]
         found_critical_keywords = [kw for kw in critical_keywords if kw in title or kw in description]
         if found_critical_keywords:
             keyword_boost = min(25, len(found_critical_keywords) * 10)
@@ -193,6 +206,7 @@ class DemoRiskAssessmentAgent:
             "risk_level": risk_level,
             "classification": classification,
             "reasoning": comprehensive_reasoning,
+            "ai_recommended_severity": "critical" if risk_level == 3 else ("high" if risk_level == 2 else "low"),
             "scoring_breakdown": {
                 "severity_base": scoring_factors["severity_contribution"],
                 "critical_keywords_boost": scoring_factors["critical_keywords_contribution"],

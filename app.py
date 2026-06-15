@@ -23,8 +23,10 @@ from dotenv import load_dotenv
 from src.opa_policy_builder import (
     POLICY_RULES,
     build_rego_policy,
+    count_rules_by_domain,
     extract_policy_candidates,
     extract_text_from_document,
+    select_policy_rules,
 )
 from src.rego_data import load_rego_data
 
@@ -283,7 +285,9 @@ async def generate_opa_from_document(file: UploadFile = File(...)):
         raw_text = extract_text_from_document(filename, content)
         cleaned_text = re.sub(r"\s+", " ", raw_text).strip()
         extracted = extract_policy_candidates(cleaned_text, limit=12)
-        rego_content = build_rego_policy(filename, extracted)
+        selected_rules = select_policy_rules(cleaned_text)
+        rego_content = build_rego_policy(filename, extracted, selected_rules)
+        domain_counts = count_rules_by_domain(selected_rules)
 
         output_path = Path(__file__).parent / "data" / "generated_policies.rego"
         output_path.write_text(rego_content, encoding="utf-8")
@@ -292,7 +296,9 @@ async def generate_opa_from_document(file: UploadFile = File(...)):
             "status": "success",
             "document": filename,
             "extracted_policy_candidates": extracted,
-            "policy_count": len(POLICY_RULES),
+            "policy_count": len(selected_rules),
+            "policy_counts_by_label": domain_counts,
+            "available_policy_library_count": len(POLICY_RULES),
             "rego_file": str(output_path),
             "rego": rego_content,
         }
