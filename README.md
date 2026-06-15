@@ -1,6 +1,11 @@
-# IT Ticket Management System - Multi-Agent Workflow
+# Agentic IT Policy-as-Code — Multi-Agent IT Ticket Management & OPA Policy Builder
 
-An intelligent, policy-aware IT support ticket management system powered by Microsoft Agent Framework and Azure AI Foundry. The system automatically analyzes tickets, assesses risks, and routes them to appropriate teams or automated remediation based on severity.
+An intelligent, policy-aware platform consisting of two integrated applications:
+
+- **IT Ticket Management System** (Port 8111) — Multi-agent AI workflow that automatically analyzes IT support tickets, assesses risk, and routes to the right team or automated remediation.
+- **OPA Policy Builder** (Port 8000) — Upload policy documents (PDF/DOCX) and auto-generate deployable Open Policy Agent (OPA) Rego rules for manufacturing IT/OT and government contractor compliance.
+
+Powered by **OpenRouter AI (NVidia Nemotron 3 Super)** with a local offline fallback for 100% uptime.
 
 ## 🎯 System Overview
 
@@ -14,6 +19,17 @@ This agentic AI system automates IT support ticket management by:
    - **Level 1 (Low Risk)**: Auto-remediate with documented solutions
    - **Level 2 (Medium Risk)**: Route to specialist teams for review
    - **Level 3 (High Risk)**: Escalate to management and security teams
+
+### Quick Demo Scenarios
+
+The web UI includes four **one-click demo scenarios** that auto-fill the ticket form:
+
+| Scenario | Severity | Risk Level | Domain |
+|----------|----------|------------|--------|
+| Lost Laptop (remote worker) | Critical | 3 – Escalate | Device/Data Security |
+| Linux Production Server DDoS | Critical | 3 – Escalate | Infrastructure/Security |
+| New Employee Onboarding | Low | 1 – Automate | Access Provisioning |
+| VPN Access Request | Medium | 2 – Specialist | Network Access |
 
 ### Real-World Example Flow
 
@@ -286,23 +302,27 @@ except Exception:
 
 ```
 agentic-it-policy-as-code/
+├── app.py                      # OPA Policy Builder — FastAPI app (port 8000)
+├── run_web.py                  # Startup script for OPA Policy Builder
 ├── src/
 │   ├── __init__.py
-│   ├── main.py                 # HTTP server entry point
-│   ├── agents.py               # Agent definitions (Analyzer, Risk Assessor, Router)
-│   ├── workflow.py             # Multi-agent orchestration
-│   └── tools.py                # Tool implementations (Policy Lookup, Risk Eval, etc.)
+│   ├── main.py                 # IT Ticket Management — aiohttp server (port 8111)
+│   ├── agents.py               # AI agents via OpenRouter (Analyzer, Risk, Router)
+│   ├── demo_agents.py          # Offline fallback agents (rule-based, no API needed)
+│   ├── opa_policy_builder.py   # OPA Rego rule generator (50 rules: IT + MFG + GOV)
+│   ├── workflow.py             # Multi-agent orchestration pipeline
+│   └── tools.py                # Tool implementations (PolicyLookup, Risk, Routing)
 ├── data/
-│   ├── policies.json           # Corporate IT policies database
-│   └── sample_tickets.json     # Sample tickets for testing (all risk levels)
+│   ├── policies.json           # 8 corporate IT policies database
+│   ├── sample_tickets.json     # Sample tickets for testing (all 3 risk levels)
+│   └── generated_policies.rego # Last auto-generated OPA Rego policy file
 ├── .vscode/
 │   ├── launch.json             # Debug configurations
 │   └── tasks.json              # VS Code build tasks
-├── .env.template               # Configuration template
-├── .env                        # Local configuration (add Foundry credentials)
+├── .env.template               # Configuration template (placeholder values only)
 ├── agent.yaml                  # Agent configuration and workflow definition
-├── requirements.txt            # Python dependencies (pinned versions)
-├── test_local.py              # Local testing script
+├── requirements.txt            # Python dependencies
+├── test_local.py               # Local offline testing script
 └── README.md                   # This file
 ```
 
@@ -405,23 +425,23 @@ Sample output:
 ✅ LOCAL TEST COMPLETE
 ```
 
-### 5. Run the HTTP Server
+### 5. Start Both Services
 
-Start the multi-agent system:
-
+**IT Ticket Management System** (Port 8111):
 ```bash
 python -m src.main
 ```
+Available at `http://localhost:8111`
 
-The server will be available at `http://localhost:8000`
-
-Endpoints:
-- `GET /health` - Health check
-- `POST /tickets/process` - Process a ticket
-
-Example request:
+**OPA Policy Builder** (Port 8000):
 ```bash
-curl -X POST http://localhost:8000/tickets/process \
+python run_web.py
+```
+Available at `http://localhost:8000` — upload a policy PDF/DOCX and download generated Rego rules.
+
+Example ticket API request:
+```bash
+curl -X POST http://localhost:8111/tickets/process \
   -H "Content-Type: application/json" \
   -d '{
     "ticket_id": "TKT-001",
@@ -621,68 +641,40 @@ await tool.execute(
 # Returns: routing decision, assigned team, priority
 ```
 
-## 🚀 Deployment to Azure Foundry
+## 🚀 Deployment
 
-### Prerequisites
+### Environment Configuration
 
-- Azure Foundry project created
-- Model deployed and endpoint available
-- Credentials configured
-
-### Deployment Options
-
-#### Option 1: Using VS Code Extension
-
-1. Open Command Palette (Cmd/Ctrl+Shift+P)
-2. Run "Microsoft Foundry: Deploy Hosted Agent"
-3. Follow the prompts
-4. Select this project
-5. Configure deployment settings
-6. Deploy
-
-#### Option 2: Using Azure CLI
-
-```bash
-# Set your subscription
-az account set --subscription <subscription-id>
-
-# Deploy to Container Apps (recommended)
-az containerapp up \
-  --name it-ticket-management \
-  --resource-group <resource-group> \
-  --ingress external \
-  --target-port 8000
-
-# Or deploy to App Service
-az appservice plan create \
-  --name it-ticket-plan \
-  --resource-group <resource-group> \
-  --sku B1
-
-az webapp create \
-  --name it-ticket-management \
-  --resource-group <resource-group> \
-  --plan it-ticket-plan \
-  --runtime PYTHON:3.11
-```
-
-### Environment Configuration for Deployment
-
-Update `.env` with Foundry credentials before deployment:
+Copy `.env.template` to `.env` and fill in your API key:
 
 ```env
-FOUNDRY_PROJECT_ENDPOINT=https://<region>.api.azureml.ms/foundry
-FOUNDRY_MODEL_DEPLOYMENT_NAME=<deployment-name>
+OPENROUTER_API_KEY=<your-openrouter-api-key>
+OPENROUTER_MODEL=nemetron/nemetron-3-super
+OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 LOG_LEVEL=INFO
 DEBUG_MODE=false
 ```
 
-### Health Check
+> ⚠️ Never commit `.env` — it is excluded by `.gitignore`. Only `.env.template` (with placeholder values) is tracked in the repository.
 
-Test deployed endpoint:
+### Running Both Services Locally
 
 ```bash
-curl -X GET http://<your-host>:8000/health
+# Terminal 1 — IT Ticket Management (port 8111)
+python -m src.main
+
+# Terminal 2 — OPA Policy Builder (port 8000)
+python run_web.py
+```
+
+### Health Checks
+
+```bash
+# IT Ticket Management
+curl http://localhost:8111/health
+
+# OPA Policy Builder API docs
+curl http://localhost:8000/api/docs
 ```
 
 ## 📈 Monitoring & Logging
@@ -783,57 +775,66 @@ wrk -t4 -c100 -d30s http://localhost:8000/chat
 
 ### Common Issues
 
-**Issue: "Foundry configuration not set"**
+**Issue: "API key error / connection refused"**
 ```
-Solution: Ensure FOUNDRY_PROJECT_ENDPOINT and FOUNDRY_MODEL_DEPLOYMENT_NAME 
-are set in .env file
-```
-
-**Issue: "Authentication failed"**
-```
-Solution: Verify Azure credentials with:
-  az account show
-  az account set --subscription <subscription-id>
+Solution: Ensure .env has a valid OPENROUTER_API_KEY:
+  cat .env | grep OPENROUTER_API_KEY
+If blank, the system falls back to local demo agents automatically.
 ```
 
 **Issue: "Module not found"**
 ```
-Solution: Install dependencies in correct order:
+Solution: Install dependencies and activate your virtual environment:
+  source venv/bin/activate
   pip install -r requirements.txt
-  Ensure virtual environment is activated
+```
+
+**Issue: "Port already in use"**
+```
+Solution:
+  # Kill process on port 8111
+  lsof -i :8111 | awk 'NR>1{print $2}' | xargs kill -9
+  # Kill process on port 8000
+  lsof -i :8000 | awk 'NR>1{print $2}' | xargs kill -9
 ```
 
 ### Debug Checklist
 
 - [ ] Virtual environment activated
-- [ ] Dependencies installed correctly
-- [ ] .env file configured with Foundry credentials
-- [ ] Python 3.10+ version verified
-- [ ] Test passes locally: `python test_local.py`
-- [ ] Agent Inspector connected (for VS Code debugging)
+- [ ] `pip install -r requirements.txt` completed
+- [ ] `.env` file created from `.env.template` with your API key
+- [ ] Python 3.9+ version verified
+- [ ] Local test passes: `python test_local.py`
+- [ ] Both services started: port 8111 (tickets) and port 8000 (OPA)
 
 ## 📚 Additional Resources
 
-- [Agent Framework Documentation](https://github.com/microsoft/agent-framework)
-- [Azure AI Foundry](https://www.microsoft.com/en-us/cloud-platform/azure-ai-foundry)
-- [Azure Identity SDK](https://github.com/Azure/azure-sdk-for-python/tree/main/sdk/identity/azure-identity)
+- [OpenRouter AI](https://openrouter.ai) — API gateway for NVidia Nemotron 3 Super and other models
+- [Open Policy Agent](https://www.openpolicyagent.org) — Rego policy engine
+- [aiohttp Documentation](https://docs.aiohttp.org) — Async HTTP server framework
+- [FastAPI Documentation](https://fastapi.tiangolo.com) — OPA Policy Builder framework
 
 ## 📝 Next Steps
 
-1. **Extend Policies**: Add custom IT policies for your organization
-2. **Custom Tools**: Implement tools for ticket management systems (ServiceNow, Jira, etc.)
-3. **Integration**: Connect to actual ticket databases and communication platforms
-4. **Analytics**: Add dashboards for ticket processing metrics
-5. **Optimization**: Fine-tune risk assessment algorithms and routing logic
+1. **Extend Policies**: Add custom IT policies for your organization in `data/policies.json`
+2. **Upload Your Own Policy Docs**: Use the OPA Policy Builder (port 8000) to generate Rego rules from your own PDF/DOCX policy files
+3. **Custom Tools**: Implement connectors for ticketing platforms (ServiceNow, Jira, etc.)
+4. **Integration**: Connect to actual ticket databases and communication platforms
+5. **Scoring Tuning**: Adjust risk score thresholds in `src/demo_agents.py` for your environment
+6. **Add Demo Scenarios**: Extend the demo tickets in `src/main.py` DEMO_TICKETS dict
 
 ## ✨ Architecture Highlights
 
+- **Two Integrated Services**: IT Ticket Management (port 8111) + OPA Policy Builder (port 8000)
 - **Multi-Agent Orchestration**: Specialized agents for analysis, assessment, and routing
-- **Policy-Driven**: All decisions based on IT policies
+- **Policy-Driven**: All decisions based on IT policies (manufacturing IT/OT + government contractor + general IT)
+- **OPA Rego Generation**: 50 deterministic deny rules covering IT change control, manufacturing OT, and government compliance (ITAR, FISMA, CUI)
+- **Dark Developer UI**: High-contrast dark theme with CSS custom properties, optimized for extended use
+- **One-Click Demo Scenarios**: Four pre-loaded clickable demo tickets auto-fill the form for instant testing
+- **Transparent Risk Scoring**: Full scoring breakdown (base + keyword + system + policy factors) displayed in results
 - **Async/Await**: Efficient async processing for scalability
-- **HTTP Server Pattern**: Production-ready deployment
-- **Extensible Tools**: Easy to add new tools and integrations
-- **Observable**: Full logging and debugging support
+- **Offline Fallback**: Local demo agents automatically used when OpenRouter API is unavailable
+- **Security Hardened**: `.env` git-ignored, `.env.template` with placeholders only, no secrets in repository
 
 ## 📄 License
 

@@ -191,11 +191,11 @@ Output:
 
 ### Server Test (Uses OpenRouter API)
 ```bash
-# Terminal 1: Start server
+# Terminal 1: Start IT Ticket Management server
 python -m src.main
 
 # Terminal 2: Send request
-curl -X POST http://localhost:8000/tickets/process \
+curl -X POST http://localhost:8111/tickets/process \
   -H "Content-Type: application/json" \
   -d '{
     "ticket_id": "TKT-001",
@@ -271,9 +271,17 @@ See all models: https://openrouter.io/models
 ## Deployment Options
 
 ### 1. Local Development ✓ (Current)
+
+**IT Ticket Management System (Port 8111):**
 ```bash
 python -m src.main
-# Runs on http://localhost:8000
+# Web UI at http://localhost:8111
+```
+
+**OPA Policy Builder (Port 8000):**
+```bash
+python run_web.py
+# Web UI at http://localhost:8000
 ```
 
 ### 2. Docker Container (Recommended)
@@ -306,10 +314,12 @@ Requires FastAPI wrapper for `azure-functions` framework.
 # Check .env file
 cat .env | grep OPENROUTER_API_KEY
 
-# Set your API key from https://openrouter.ai in .env
-# Then start the server
-python -m src.main
+# Create .env from template if missing:
+cp .env.template .env
+# Then add your API key from https://openrouter.ai
 ```
+
+> Note: If the API key is missing or invalid, the IT Ticket Management System automatically falls back to local demo agents — all functionality remains available offline.
 
 ### "Rate limit exceeded"
 - Free tier has limits (~100 requests/day)
@@ -329,10 +339,11 @@ python -m src.main
 ## Next Steps
 
 1. **Verify Setup:** `python test_local.py` ✓
-2. **Start Server:** `python -m src.main`
-3. **Test Endpoint:** Use curl or Postman
-4. **Deploy:** Follow deployment options above
-5. **Monitor:** Check OpenRouter dashboard for usage
+2. **Start IT Ticket System:** `python -m src.main` → http://localhost:8111
+3. **Start OPA Policy Builder:** `python run_web.py` → http://localhost:8000
+4. **Try Demo Scenarios:** Click any of the four demo buttons in the ticket UI
+5. **Generate OPA Policy:** Upload a PDF/DOCX at http://localhost:8000 to generate manufacturing/government Rego rules
+6. **Deploy:** Follow deployment options above
 
 ## Rollback to Foundry (If needed)
 

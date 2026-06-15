@@ -1,266 +1,133 @@
-# 🚀 Quick Start Guide - Enhanced IT Policy as Code System
+# Enhanced Features — IT Ticket Management & OPA Policy Builder
 
-## ✨ What's New
-
-### 1. **Policy Identification** ✅
-- System now **auto-identifies relevant policies** based on ticket content
-- Shows detailed policy information:
-  - Policy ID and Title
-  - Category and Description  
-  - Enforcement mechanism
-  - Key compliance requirements
-
-### 2. **Smart Team Assignment** ✅
-- **Level 1 (Low Risk):** Automated remediation with specific steps
-- **Level 2 (Medium Risk):** Specialist team assignment
-- **Level 3 (High Risk):** Critical escalation with immediate actions
-
-### 3. **Automation Agents** ✅
-- System recommends which AI agents should handle each ticket
-- Examples:
-  - Password Reset Agent → for password issues
-  - MFA Troubleshooting Agent → for VPN/MFA issues
-  - Malware Analysis Agent → for security incidents
-  - Forensic Collection Agent → for breach investigations
-
-### 4. **Demo Script** ✅
-- New `web_demo_test.py` for testing
-- 3 built-in example scenarios
-- Both manual and API testing modes
+This document describes the current feature set as of June 2026, reflecting all enhancements made to both applications.
 
 ---
 
-## 🎯 Quick Test
+## 🖥️ IT Ticket Management System (Port 8111)
 
-### Step 1: Start the Server
-```bash
-cd /path/to/agentic-it-policy-as-code
-source venv/bin/activate
-python run_web.py
+### Dark Developer UI
+
+The web interface uses a fully dark theme designed for developer and operations use during extended sessions.
+
+**Color Palette (CSS custom properties):**
+
+| Variable | Value | Use |
+|----------|-------|-----|
+| `--bg-0` | `#0b1020` | Page background |
+| `--bg-1` | `#121a2f` | Secondary background |
+| `--card` | `#121826` | Card/panel background |
+| `--line` | `#2a3550` | Borders and dividers |
+| `--text-1` | `#e6ecff` | Primary text |
+| `--text-2` | `#a6b3d1` | Secondary text |
+| `--accent` | `#5eead4` | Teal accent / links |
+| `--accent-2` | `#38bdf8` | Blue accent / highlights |
+| `--ok` | `#22c55e` | Success / Level 1 green |
+| `--warn` | `#f59e0b` | Warning / Level 2 amber |
+| `--bad` | `#ef4444` | Danger / Level 3 red |
+
+### One-Click Demo Scenarios
+
+Four clickable demo buttons on the homepage auto-fill the entire ticket form (all fields including checkboxes) for instant testing:
+
+| Button | Ticket ID | Severity | Expected Level | Domain |
+|--------|-----------|----------|----------------|--------|
+| 💻 Lost Laptop | INC-DEMO-001 | Critical | Level 3 — Escalate | Device / Data Security |
+| 🔴 DDoS Attack | INC-DEMO-002 | Critical | Level 3 — Escalate | Infrastructure / Security |
+| 👤 New Employee Onboarding | INC-DEMO-003 | Low | Level 1 — Automate | Access Provisioning |
+| 🔐 VPN Access Request | INC-DEMO-004 | Medium | Level 2 — Specialist | Network Access |
+
+Each scenario populates: Ticket ID, Title, Description, Department, Affected Systems (checkboxes), Severity radio button, and Policy Implications (checkboxes).
+
+### Transparent Risk Scoring
+
+The results panel displays a full **Scoring Breakdown** section alongside AI reasoning:
+
 ```
-Expected output:
-```
-🚀 IT TICKET MANAGEMENT SYSTEM - WEB SERVER
-📍 Server starting on: http://0.0.0.0:8000
+📊 Risk Score: 85/100  |  Risk Level: 3 (High)
+───────────────────────────────────────────────
+Scoring Breakdown:
+  ⚙️  Severity Base:      60 pts   (Critical severity)
+  🔑 Critical Keywords:  +20 pts  ("malware", "breach")
+  🖥️  System Criticality:  +5 pts   (Database, VLAN)
+  📋 Policy Impact:        0 pts   (Single policy)
 ```
 
-### Step 2: Run Demo Script (Option A - Manual JSON)
-```bash
-python web_demo_test.py
-```
-This displays 3 formatted JSON tickets you can copy-paste into the web form.
+Color-coded by factor: base score (blue), keyword boost (amber/red), system boost (teal), policy boost (purple).
 
-### Step 3: Run Demo Script (Option B - Auto Test)
-```bash
-# Test all 3 scenarios
-python web_demo_test.py --api
+### AI Reasoning Display
 
-# Test specific scenario (1=Password, 2=VPN, 3=Security)
-python web_demo_test.py --api --ticket 1
-```
+All three agent outputs are shown in the results panel:
 
-### Step 4: Open Web Interface
-Visit: http://localhost:8000
+1. **Policy Analysis** — TicketAnalyzerAgent: which policies apply and why
+2. **Risk Assessment** — RiskAssessmentAgent: what drove the score and classification
+3. **Routing Decision** — RoutingAgent: assigned team, priority, required actions
+
+### Offline Fallback Agents
+
+When OpenRouter API is unavailable, the system automatically uses `DemoAgents` — local rule-based implementations that:
+- Produce identical JSON structure (scoring_factors, reasoning, final_action)
+- Apply the same risk scoring logic heuristically
+- Return detailed multi-part reasoning
+- Require zero external dependencies
 
 ---
 
-## 📊 What You'll See
+## 📄 OPA Policy Builder (Port 8000)
 
-### For Level 1 Tickets (e.g., Password Reset)
-```
-Risk Score: 20/100
-Risk Level: 1 (Low Risk)
+### Document Upload
 
-📋 Identified Policies: POL-001
-Policy Details:
-  - Password Security Policy
-  - Key Requirement: "Password reset required every 90 days"
-  - Enforcement: Active Directory
+Upload policy documents in **PDF** or **DOCX** format. The builder:
+1. Extracts plain text from the document
+2. Identifies policy-relevant sentences (keywords: must, shall, required, audit, ITAR, export, compliance)
+3. Embeds matched sentences as traceability comments in the Rego output
+4. Returns a downloadable `.rego` file
 
-🎯 Recommended Actions:
-  Automation Type: password_reset
-  Estimated Time: 5 minutes
-  Steps:
-    1. Trigger password reset link
-    2. User creates new password
-    3. Verify AD sync
-    4. Confirm user login
-```
+### 50 Auto-Generated Rego Rules
 
-### For Level 2 Tickets (e.g., VPN/MFA)
-```
-Risk Score: 48/100
-Risk Level: 2 (Medium Risk)
+| Domain | Rules | Count |
+|--------|-------|-------|
+| IT Change Control | IT-001 to IT-030 | 30 |
+| Manufacturing IT/OT | MFG-001 to MFG-010 | 10 |
+| Government Contractor | GOV-001 to GOV-010 | 10 |
 
-📜 Identified Policies: POL-002, POL-005
-Policy Details:
-  - MFA Policy + Access Control Policy
+**Manufacturing IT/OT rules cover:** OT system safety, production line approvals, critical equipment, supply chain, inventory, maintenance, quality control, plant safety, ICS security, and process parameters.
 
-👥 Assigned Team: Security Operations Center (SOC) - Identity & Access Team
-Priority: HIGH
-🤖 Automation Agents:
-  - MFA Troubleshooting Agent
-  - VPN Connectivity Diagnostics
-
-📋 Required Information:
-  - MFA device used
-  - Error messages
-  - Last successful connection time
-```
-
-### For Level 3 Tickets (e.g., Security Alert)
-```
-Risk Score: 85/100
-Risk Level: 3 (High Risk)
-
-📜 Identified Policies: POL-003, POL-004, POL-006, POL-007
-Policies: Data Classification, Patch Management, Device Management, Incident Response
-
-👥 Assigned Team: SOC + Incident Response Team
-Priority: CRITICAL ⚠️
-🤖 Automation Agents:
-  - Malware Analysis Agent
-  - Forensic Collection Agent
-
-🚨 Immediate Actions (8+ critical steps):
-  ⚡ Isolate affected endpoint
-  ⚡ Preserve forensic evidence
-  ⚡ Notify Compliance team
-  ⚡ Begin investigation
-  ⚡ Contact affected users
-  ...
-```
+**Government contractor rules cover:** ITAR export control, classified systems, foreign national access, EAR technology transfer, contract milestone notification, FISMA compliance, DoD incident response, data exfiltration controls, CUI handling, and facility access.
 
 ---
 
-## 📋 Example Test Tickets
+## 🔐 Security Status
 
-### Test 1: Password Reset (Level 1)
-```json
-{
-  "ticket_id": "TKT-DEMO-001",
-  "title": "Password Reset Request",
-  "description": "User forgot their password",
-  "department": "Finance",
-  "affected_systems": ["Active Directory", "Email"],
-  "severity_reported": "high",
-  "policy_implications": ["POL-001"]
-}
-```
-
-### Test 2: VPN/MFA Issue (Level 2)
-```json
-{
-  "ticket_id": "TKT-DEMO-002",
-  "title": "Cannot Access VPN - MFA Failures",
-  "description": "MFA timeouts when connecting to corporate VPN",
-  "department": "Engineering",
-  "affected_systems": ["VPN", "MFA"],
-  "severity_reported": "critical",
-  "policy_implications": ["POL-002"]
-}
-```
-
-### Test 3: Security Alert (Level 3)
-```json
-{
-  "ticket_id": "TKT-DEMO-003",
-  "title": "Suspicious Email Download - Malware Detected",
-  "description": "User opened suspicious attachment. Antivirus alerts triggered.",
-  "department": "Sales",
-  "affected_systems": ["Endpoints", "Email", "Network"],
-  "severity_reported": "critical",
-  "policy_implications": ["POL-003", "POL-007"]
-}
-```
+| Protection | Status |
+|------------|--------|
+| `.env` excluded from git | ✅ `.gitignore` covers `.env`, `.env.local`, `.env.*.local` |
+| `.env.template` uses placeholders only | ✅ `OPENROUTER_API_KEY=<your-openrouter-api-key>` |
+| No API keys in source code | ✅ Verified — zero matches on secret patterns |
+| No API keys in git history | ✅ History rewritten, force-pushed to GitHub |
+| No user-specific paths in docs | ✅ All docs use generic `/path/to/` references |
 
 ---
 
-## 🎯 Key Features Demonstrated
+## 🧪 Testing Scripts
 
-### ✅ Policy Intelligence
-- Auto-detects 8 corporate IT policies
-- Maps policies to ticket issues
-- Shows policy details and requirements
-
-### ✅ Risk Scoring
-- Calculates risk score 0-100
-- Factors: severity, systems, policies, keywords
-- Transparent calculation breakdown
-
-### ✅ Smart Routing
-- Level 1 → Automated steps
-- Level 2 → Specialist team
-- Level 3 → Critical escalation + immediate actions
-
-### ✅ AI-Powered Analysis
-- OpenRouter AI for policy analysis
-- OpenRouter AI for risk assessment
-- OpenRouter AI for action recommendations
-
-### ✅ Automation Agents
-- Specific agents for each scenario
-- Examples: MFA Troubleshooting, Malware Analysis, Data Classification
-- Fallback: Comprehensive rule-based recommendations
+| Script | Description |
+|--------|-------------|
+| `python test_local.py` | Offline test — loads policies, tickets, verifies tools (no API) |
+| `python test_openrouter_direct.py` | Live API test — validates OpenRouter connectivity |
+| `python test_comprehensive.py` | Full suite — all tools, agents, and risk levels |
 
 ---
 
-## 🔄 Full Workflow
+## 📁 Key Files
 
-```
-Ticket Submission
-       ↓
-Policy Identification (TicketAnalyzerAgent)
-       ↓
-Risk Assessment (RiskAssessmentAgent)
-       ↓
-Action Recommendation (RoutingAgent)
-       ↓
-Display Results:
-  - Risk Score Breakdown
-  - Identified Policies
-  - Policy Details
-  - AI Reasoning
-  - Recommended Actions
-  - Team Assignment
-  - Automation Agents
-  - Immediate Actions (if critical)
-```
-
----
-
-## 🛠️ File Locations
-
-- **Web Interface:** http://localhost:8000
-- **Demo Script:** `web_demo_test.py`
-- **Main Code:**
-  - `src/agents.py` - Enhanced with policy identification
-  - `src/workflow.py` - Updated to track policies
-  - `src/tools.py` - Policy lookup tool
-- **Configuration:**
-  - `.env` - OpenRouter API key
-  - `data/policies.json` - All 8 corporate policies
-  - `data/sample_tickets.json` - Sample test tickets
-
----
-
-## 📞 Support
-
-**Testing Policy Identification:**
-- Check if ticket is auto-identifying correct policies
-- Verify policy details display properly
-- Confirm policy requirements are shown
-
-**Testing Risk Scoring:**
-- Compare Level 1, 2, and 3 scenarios
-- Check if scores correlate with severity
-- Verify policies affect risk calculation
-
-**Testing Team Assignment:**
-- Confirm Level 1 shows automation steps
-- Check Level 2 shows specialist team
-- Verify Level 3 shows SOC + immediate actions
-
----
-
-**All enhancements complete! The system now provides comprehensive policy analysis with intelligent team assignment and automation recommendations.** 🎉
+| File | Purpose |
+|------|---------|
+| `src/main.py` | IT Ticket Management aiohttp server (port 8111), dark UI, demo scenarios |
+| `src/agents.py` | OpenRouter-powered agents with scoring_factors tracking |
+| `src/demo_agents.py` | Local offline fallback agents with full scoring breakdown |
+| `src/workflow.py` | Multi-agent orchestration pipeline |
+| `src/opa_policy_builder.py` | 50 OPA Rego rules: IT + manufacturing + government |
+| `app.py` | OPA Policy Builder FastAPI app (port 8000) |
+| `data/generated_policies.rego` | Last generated OPA policy output |
+| `.env.template` | Configuration template — placeholder values only, safe to commit |

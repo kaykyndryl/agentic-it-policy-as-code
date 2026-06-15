@@ -1,32 +1,39 @@
-# 🚀 IT Ticket Management System - Quick Start Guide
+# 🚀 Quick Start Guide — IT Ticket Management & OPA Policy Builder
 
-## ✅ What Has Been Created
+## ✅ What This Platform Provides
 
-Your complete multi-agent IT ticket management system is now ready with **OpenRouter AI** integration.
+Two integrated applications running on separate ports:
+
+| App | Port | Description |
+|-----|------|-------------|
+| IT Ticket Management System | 8111 | Multi-agent AI ticket triage and routing |
+| OPA Policy Builder | 8000 | Upload policy docs, download generated Rego rules |
 
 ### Project Structure
 
 ```
 agentic-it-policy-as-code/
+├── app.py                      # OPA Policy Builder (FastAPI, port 8000)
+├── run_web.py                  # Startup script for OPA Policy Builder
 ├── src/
-│   ├── main.py              # HTTP server entry point
-│   ├── agents.py            # 3 specialized agents (OpenRouter-based)
-│   ├── workflow.py          # Multi-agent orchestration engine
-│   └── tools.py             # 5 integrated tools
-│
+│   ├── main.py              # IT Ticket Management (aiohttp, port 8111)
+│   ├── agents.py            # 3 AI agents via OpenRouter
+│   ├── demo_agents.py       # Offline fallback agents (no API needed)
+│   ├── opa_policy_builder.py # 50 OPA Rego rules (IT + manufacturing + government)
+│   ├── workflow.py          # Multi-agent orchestration
+│   └── tools.py             # Policy lookup, risk evaluation, routing tools
 ├── data/
 │   ├── policies.json        # 8 corporate IT policies
-│   └── sample_tickets.json  # 7 sample tickets (all 3 risk levels)
-│
+│   ├── sample_tickets.json  # Sample tickets (all 3 risk levels)
+│   └── generated_policies.rego  # Last generated OPA policy file
 ├── .vscode/
-│   ├── launch.json          # 2 debug configurations
+│   ├── launch.json          # Debug configurations
 │   └── tasks.json           # Build/run tasks
-│
-├── .env                     # Configuration with OpenRouter API key ✓
+├── .env.template            # Configuration template (placeholder values)
 ├── agent.yaml              # Workflow configuration
-├── requirements.txt        # Dependencies (standard API client, aiohttp, pydantic, etc.)
-├── test_local.py          # Local testing script
-└── README.md              # Complete documentation
+├── requirements.txt        # Python dependencies
+├── test_local.py          # Local offline testing script
+└── README.md              # Full documentation
 ```
 
 ### What's Changed
@@ -48,12 +55,15 @@ Your system now uses **OpenRouter AI** instead of Azure Foundry:
 1. Go to https://openrouter.ai
 2. Sign up (free)
 3. Copy your API key from settings
-4. ✅ Already configured in `.env`!
+4. Create `.env` from the template: `cp .env.template .env`
+5. Edit `.env` and paste your key as `OPENROUTER_API_KEY=<your-key-here>`
+
+> **Security note:** Never commit `.env`. It is excluded by `.gitignore`. Only `.env.template` with placeholder values is tracked in git.
 
 #### Step 2: Install Dependencies (2 minutes)
 
 ```bash
-cd /Users/kayapperson/Documents/agentic-it-policy-as-code/agentic-it-policy-as-code
+cd /path/to/agentic-it-policy-as-code
 pip install -r requirements.txt
 ```
 
@@ -86,20 +96,30 @@ Expected Risk Level: 1
 ✅ LOCAL TEST COMPLETE
 ```
 
-#### Step 4: Start HTTP Server (1 minute)
+#### Step 4: Start Both Services
 
+**IT Ticket Management System** (open one terminal):
 ```bash
 python -m src.main
 ```
+Web UI available at: `http://localhost:8111`
 
-Server running at: `http://localhost:8000`
+Click any of the four **Quick Demo** buttons to auto-fill a scenario and hit **Process Ticket**.
 
-#### Step 5: Test with a Ticket
+**OPA Policy Builder** (open a second terminal):
+```bash
+python run_web.py
+```
+Available at: `http://localhost:8000`
+
+Upload a policy PDF or DOCX to generate downloadable Rego change-control rules.
+
+#### Step 5: Test with a Ticket via API
 
 In another terminal:
 
 ```bash
-curl -X POST http://localhost:8000/tickets/process \
+curl -X POST http://localhost:8111/tickets/process \
   -H "Content-Type: application/json" \
   -d '{
     "ticket_id": "TKT-002",
@@ -131,30 +151,23 @@ Response:
 
 ## 📋 Configuration
 
-Your `.env` file is pre-configured:
+Copy the template and add your API key:
+
+```bash
+cp .env.template .env
+```
+
+Edit `.env`:
 
 ```env
-OPENROUTER_API_KEY=<your-openrouter-api-key>  # ✓ Configured
-OPENROUTER_MODEL=nemetron/nemetron-3-super    # ✓ Set to NVidia Nemotron 3 Super (primary)
+OPENROUTER_API_KEY=<your-openrouter-api-key>
+OPENROUTER_MODEL=nemetron/nemetron-3-super
 OPENROUTER_BASE_URL=https://openrouter.io/api/v1
 LOG_LEVEL=INFO
 DEBUG_MODE=false
 ```
 
-**Optional: Change Model (Advanced)**
-
-Edit `.env` to try different models:
-```env
-# Primary (Recommended)
-OPENROUTER_MODEL=nemetron/nemetron-3-super
-
-# Alternative models (commented - requires own API keys)
-# Alternative models (not supported for this system):
-# OPENROUTER_MODEL=openai/gpt-4-turbo
-# OPENROUTER_MODEL=anthropic/claude-3-opus
-
-# See all: https://openrouter.io/models
-```
+> **Security:** `.env` is git-ignored. Only `.env.template` (with placeholder values) is committed to the repository. Never put a real API key in `.env.template`.
 
 ## 🎯 How It Works
 
@@ -223,11 +236,11 @@ Tests:
 ### Manual API Test
 
 ```bash
-# Health check
-curl http://localhost:8000/health
+# Health check (ticket service)
+curl http://localhost:8111/health
 
-# Process ticket
-curl -X POST http://localhost:8000/tickets/process \
+# Process ticket via API
+curl -X POST http://localhost:8111/tickets/process \
   -H "Content-Type: application/json" \
   -d @sample_ticket.json
 ```
@@ -313,10 +326,13 @@ curl -X POST http://localhost:8000/tickets/process \
 $ cat .env | grep OPENROUTER_API_KEY
 ```
 
-### "Connection refused" on localhost:8000  
+### "Connection refused" on localhost:8111
 ```
-✓ Fix: Server started? Check terminal
+✓ Fix: Start the ticket management server:
 $ python -m src.main
+
+For OPA Policy Builder (port 8000):
+$ python run_web.py
 ```
 
 ### "Rate limit exceeded"
@@ -368,46 +384,18 @@ $ python -m src.main
 
 ## 📋 Next Steps
 
-### Step 1: Configure Foundry Access (5 min)
+- [ ] Open `http://localhost:8111` in a browser and try the four demo scenarios
+- [ ] Open `http://localhost:8000` and upload a PDF/DOCX policy document to generate OPA Rego rules
+- [ ] Customize policies in `data/policies.json`
+- [ ] Adjust risk thresholds in `src/demo_agents.py`
+- [ ] Add new demo scenarios in the `DEMO_TICKETS` dict inside `src/main.py`
+- [ ] Review `README.md` for full architecture and API reference
 
-Edit `.env` file with your Foundry project details:
+---
 
-```bash
-# Open .env file
-# Update these values from your Azure AI Foundry project:
-FOUNDRY_PROJECT_ENDPOINT=https://<region>.api.azureml.ms/foundry
-FOUNDRY_MODEL_DEPLOYMENT_NAME=<your-deployment-name>
-```
-
-### Step 2: Test with F5 Debug
-
-1. Open this project in VS Code
-2. Open any `.py` file in the `src/` directory
-3. Press **F5** to start debugging
-4. Choose "Python: Run Main Server"
-5. Server will start on http://localhost:8000
-
-**Debug Features Available:**
-- **F5**: Run with breakpoints
-- **Ctrl+Shift+D**: Open debug panel
-- **AI Toolkit Inspector**: Interactive agent tracing
-- **Console**: View logs and outputs
-
-### Step 3: Run Tests Locally
-
-```bash
-# Run all tests and tool demonstrations
-python test_local.py
-```
-
-### Step 4: Deploy to Foundry (Production)
-
-When ready to deploy:
-
-```bash
-# Option 1: VS Code Command
-Open Command Palette (Cmd/Ctrl+Shift+P)
-> Microsoft Foundry: Deploy Hosted Agent
+**System is ready!**
+- `python -m src.main` → IT Ticket Management at `http://localhost:8111` ✅
+- `python run_web.py` → OPA Policy Builder at `http://localhost:8000` ✅
 
 # Option 2: Azure CLI
 az containerapp up --name it-ticket-management \
