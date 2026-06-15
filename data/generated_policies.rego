@@ -1,22 +1,22 @@
 package policy.change_control
 
 # Auto-generated from uploaded policy documentation
-# Source document: Compay Information Security System and Change Control Policy2.pdf
-# Rule count: 50 (30 IT change control + 20 healthcare)
+# Source document: Company System Information Security and Change Control Policy.docx
+# Rule count: 50 (30 IT change control + 10 manufacturing + 10 government)
 
 # Extracted policy statements from the uploaded document
-# 01. Company System Information Security and Change Control Policy Document Owner: Chief Information Security Officer (CISO) / Privacy Officer Approved By: [Executive Approver / Governance Committee] Versi
-# 02. Purpose The purpose of this policy is to establish a clear, practical, and enforceable framework for protecting electronic protected health information (ePHI), supporting safe and reliable patient car
-# 03. This policy is written to support the confidentiality, integrity, and availability of ePHI; to ensure that changes to production systems are planned, reviewed, approved, tested, and documented; and to
-# 04. Scope This policy applies to all workforce members, medical staff, temporary staff, contractors, students, volunteers, vendors, managed service providers, and business associates who access, administe
-# 05. Policy Statement [Organization Name] will maintain written, implemented, and periodically updated security and change control policies and procedures that are reasonable and appropriate for the size,
-# 06. All systems containing or supporting ePHI shall be protected through administrative, physical, and technical safeguards.
-# 07. Production changes shall not be introduced without documented planning, appropriate authorization, adequate testing, traceability, and post-implementation accountability, except under formally governe
-# 08. No workforce member or vendor may bypass this policy, disable required safeguards, or introduce unapproved changes to production systems that could materially affect patient safety, care continuity, p
-# 09. Protect ePHI and other confidential healthcare information from unauthorized access, use, disclosure, alteration, destruction, or loss.
-# 10. Reduce operational and patient-care disruption caused by poorly governed changes.
-# 11. Create a repeatable and risk-based change process that scales across clinical and enterprise environments.
-# 12. Ensure accountability through documentation, approvals, audit trails, and evidence retention.
+# 01. Manufacturing and Government Contract Information Security and Change Control Policy Document Owner: Chief Information Security Officer (CISO) / Director of Compliance Approved By: Executive Approver
+# 02. Purpose The purpose of this policy is to establish a clear, practical, and enforceable framework for protecting controlled unclassified information (CUI), covered defense information (CDI), export-con
+# 03. This policy translates contractual, regulatory, and security obligations into day-to-day expectations for employees, contractors, subcontractors, suppliers, and service providers.
+# 04. This policy is written to support the confidentiality, integrity, and availability of sensitive contract, engineering, production, and operational data; to ensure that changes to production IT and OT
+# 05. Scope This policy applies to all employees, temporary staff, contractors, subcontractors, consultants, suppliers, vendors, managed service providers, and third parties who access, administer, support,
+# 06. Policy Statement [Organization Name] will maintain written, implemented, and periodically updated security and change control policies and procedures that are reasonable and appropriate for the size,
+# 07. All systems containing or supporting CUI, CDI, export-controlled data, and other sensitive contract or manufacturing information shall be protected through administrative, physical, and technical safe
+# 08. Production changes shall not be introduced without documented planning, appropriate authorization, adequate testing, traceability, and post-implementation accountability, except under formally governe
+# 09. No employee, contractor, supplier, or vendor may bypass this policy, disable required safeguards, or introduce unapproved changes to production systems that could materially affect contractual complia
+# 10. Objectives The objectives of this policy are to: Protect CUI, CDI, export-controlled data, and other confidential manufacturing and contract information from unauthorized access, use, disclosure, alte
+# 11. Reduce operational disruption, quality issues, and contract performance risk caused by poorly governed changes.
+# 12. Create a repeatable and risk-based change process that scales across enterprise IT, engineering systems, and OT environments.
 
 # IT-001 [it]
 deny[msg] {
@@ -221,144 +221,142 @@ deny[msg] {
   msg := "Change closure requires validation evidence"
 }
 
-# HC-001 [healthcare]
+# MFG-001 [manufacturing]
 deny[msg] {
-  input.change.affects_phi
-  not input.change.privacy_officer_approved
-  msg := "PHI access change requires privacy approval"
+  input.change.affects_ot_system
+  not input.change.safety_assessment_completed
+  msg := "OT system changes require operational safety assessment"
 }
 
-# HC-002 [healthcare]
+# MFG-002 [manufacturing]
 deny[msg] {
-  input.change.affects_phi
-  not input.change.hipaa_risk_assessment
-  msg := "PHI system change requires HIPAA risk assessment"
+  input.change.affects_production_line
+  not input.change.manufacturing_engineer_approved
+  msg := "Production line changes require manufacturing engineer approval"
 }
 
-# HC-003 [healthcare]
+# MFG-003 [manufacturing]
 deny[msg] {
-  input.change.affects_clinical_system
-  input.change.requires_outage
-  not input.change.patient_safety_plan
-  msg := "Clinical system downtime requires patient safety plan"
+  input.change.affects_critical_equipment
+  not input.change.equipment_specialist_approved
+  msg := "Critical equipment modification requires equipment specialist sign-off"
 }
 
-# HC-004 [healthcare]
+# MFG-004 [manufacturing]
 deny[msg] {
-  input.change.affects_ehr
-  not input.change.cmio_approved
-  msg := "EHR configuration change requires CMIO review"
+  input.change.affects_supply_chain_system
+  not input.change.vendor_verified
+  msg := "Supply chain integration changes require vendor verification"
 }
 
-# HC-005 [healthcare]
+# MFG-005 [manufacturing]
 deny[msg] {
-  input.change.affects_medication_workflow
-  not input.change.pharmacy_approved
-  msg := "Medication workflow changes require pharmacy sign-off"
+  input.change.affects_inventory_system
+  not input.change.reconciliation_audit_completed
+  msg := "Inventory management changes require reconciliation audit"
 }
 
-# HC-006 [healthcare]
+# MFG-006 [manufacturing]
 deny[msg] {
-  input.change.affects_lab_interface
-  not input.change.interface_validation_report
-  msg := "Lab interface changes require validation results"
+  input.change.affects_maintenance_system
+  not input.change.maintenance_lead_approved
+  msg := "Maintenance system changes require maintenance team approval"
 }
 
-# HC-007 [healthcare]
+# MFG-007 [manufacturing]
 deny[msg] {
-  input.change.affects_radiology
-  not input.change.dicom_compatibility_verified
-  msg := "Radiology integration changes require DICOM compatibility check"
+  input.change.affects_quality_control
+  not input.change.qa_director_approved
+  msg := "Quality control system changes require QA director sign-off"
 }
 
-# HC-008 [healthcare]
+# MFG-008 [manufacturing]
 deny[msg] {
-  input.change.affects_telehealth
-  not input.change.security_test_completed
-  msg := "Telehealth platform changes require security testing"
+  input.change.affects_safety_system
+  not input.change.facility_manager_approved
+  msg := "Plant safety system changes require facility manager authorization"
 }
 
-# HC-009 [healthcare]
+# MFG-009 [manufacturing]
 deny[msg] {
-  input.change.phi_export_enabled
-  not input.change.audit_logging_verified
-  msg := "Changes impacting PHI exports require audit log verification"
+  input.change.affects_ot_network
+  not input.change.ics_security_reviewed
+  msg := "OT network changes require industrial control system security review"
 }
 
-# HC-010 [healthcare]
+# MFG-010 [manufacturing]
 deny[msg] {
-  input.change.affects_patient_portal
-  not input.change.accessibility_reviewed
-  msg := "Patient portal changes require accessibility review"
+  input.change.affects_process_parameters
+  not input.change.process_owner_approved
+  msg := "Manufacturing process parameter changes require process owner approval"
 }
 
-# HC-011 [healthcare]
+# GOV-001 [government]
 deny[msg] {
-  input.change.affects_patient_identity_matching
-  not input.change.data_quality_approved
-  msg := "Identity matching changes require data quality approval"
+  input.change.includes_itar_code
+  not input.change.export_control_reviewed
+  msg := "ITAR-controlled code changes require export compliance review"
 }
 
-# HC-012 [healthcare]
+# GOV-002 [government]
 deny[msg] {
-  input.change.affects_clinical_decision_support
-  not input.change.physician_approved
-  msg := "Clinical decision support changes require physician sign-off"
+  input.change.affects_classified_system
+  not input.change.clearance_verified
+  msg := "Classified system changes require security clearance verification"
 }
 
-# HC-013 [healthcare]
+# GOV-003 [government]
 deny[msg] {
-  input.change.affects_phi_retention
-  not input.change.legal_approved
-  msg := "PHI retention rule changes require legal approval"
+  input.change.grants_foreign_national_access
+  not input.change.ciso_legal_approved
+  msg := "Foreign national access changes require CISO and legal approval"
 }
 
-# HC-014 [healthcare]
+# GOV-004 [government]
 deny[msg] {
-  input.change.third_party_healthcare_vendor
-  not input.change.baa_confirmed
-  msg := "Third-party healthcare integration requires BAA confirmation"
+  input.change.involves_ear_technology
+  not input.change.ear_compliance_certified
+  msg := "EAR technology transfer changes require compliance certification"
 }
 
-# HC-015 [healthcare]
+# GOV-005 [government]
 deny[msg] {
-  input.change.affects_nursing_workflow
-  not input.change.nursing_leadership_approved
-  msg := "Nursing workflow changes require nursing leadership sign-off"
+  input.change.contract_milestone_impact
+  not input.change.customer_notified
+  msg := "Contract milestone deadline changes require customer notification"
 }
 
-# HC-016 [healthcare]
+# GOV-006 [government]
 deny[msg] {
-  input.change.affects_clinical_alert_thresholds
-  not input.change.clinical_governance_approved
-  msg := "Clinical alert threshold changes require governance approval"
+  input.change.interfaces_with_gov_system
+  not input.change.fisma_compliance_audit
+  msg := "Government system interface changes require FISMA compliance audit"
 }
 
-# HC-017 [healthcare]
+# GOV-007 [government]
 deny[msg] {
-  input.change.affects_consent_workflow
-  not input.change.compliance_validated
-  msg := "Patient consent workflow changes require compliance validation"
+  input.change.affects_dod_incident_plan
+  not input.change.dod_approved
+  msg := "Cybersecurity incident response plan changes require DoD approval"
 }
 
-# HC-018 [healthcare]
+# GOV-008 [government]
 deny[msg] {
-  input.change.affects_eprescribing
-  not input.change.controlled_substance_checks_complete
-  msg := "Changes to ePrescribing require controlled-substance checks"
+  input.change.affects_exfiltration_controls
+  not input.change.secops_reviewed
+  msg := "Data exfiltration controls changes require security operations review"
 }
 
-# HC-019 [healthcare]
+# GOV-009 [government]
 deny[msg] {
-  input.change.affects_medical_device_integration
-  not input.change.biomedical_approved
-  msg := "Medical device integration changes require biomedical review"
+  input.change.affects_cui_handling
+  not input.change.cui_compliance_validated
+  msg := "Controlled unclassified information (CUI) handling changes require compliance validation"
 }
 
-# HC-020 [healthcare]
+# GOV-010 [government]
 deny[msg] {
-  input.change.affects_phi
-  input.change.go_live
-  not input.change.incident_response_updated
-  msg := "PHI-related incident response procedures must be updated before go-live"
+  input.change.affects_facility_access
+  not input.change.govt_site_approved
+  msg := "Facility access control changes requiring government site visit approval"
 }
