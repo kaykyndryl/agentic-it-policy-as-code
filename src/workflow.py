@@ -53,36 +53,89 @@ class TicketProcessingWorkflow:
     def _validate_ticket_input(self, ticket_data: dict) -> dict:
         """Validate severity consistency and auto-correct obvious mismatches.
 
-        Example: DDoS + low severity => auto-escalate to critical.
+        Generates contextual messages based on ticket type and content.
+        Example: Laptop lost + low severity => escalate to CRITICAL due to data exposure risk.
         """
         title = str(ticket_data.get("title", "")).lower()
         description = str(ticket_data.get("description", "")).lower()
         combined = f"{title} {description}"
+        affected_systems = ticket_data.get("affected_systems", [])
 
         reported = str(ticket_data.get("severity_reported", "medium")).lower()
         reported_rank = self._severity_rank(reported)
         min_required_rank = 1
         reasons: list[str] = []
 
-        # Threat/incident patterns that require at least critical severity.
-        critical_patterns = [
-            "ddos",
-            "dos attack",
-            "denial of service",
-            "ransomware",
-            "malware",
-            "breach",
-            "data exposure",
-            "unauthorized access",
-            "compromised",
-        ]
+        # Helper to check if any pattern is in combined text (flexible matching)
+        def has_pattern(text, patterns):
+            """Check if any pattern appears in text, handling word variations"""
+            for pattern in patterns:
+                if pattern in text:
+                    return True
+            return False
 
-        if any(p in combined for p in critical_patterns):
+        # Critical security incidents - escalate to CRITICAL
+        critical_keywords = [
+            "ddos", "dos attack", "denial of service",
+            "ransomware", "malware",
+            "breach", "compromised", "unauthorized access"
+        ]
+        
+        # Device loss/theft - HIGH to CRITICAL based on systems
+        device_loss_keywords = [
+            "lost", "missing", "stolen", "misplaced"
+        ]
+        device_types = ["laptop", "device", "computer", "workstation", "phone", "mobile"]
+        
+        # Determine if this is a device loss case
+        is_device_loss = has_pattern(combined, device_loss_keywords) and has_pattern(combined, device_types)
+
+        # Critical security incidents
+        if has_pattern(combined, critical_keywords):
             min_required_rank = max(min_required_rank, 4)
-            reasons.append(
-                "Detected critical security/availability indicators "
-                "(e.g., DDoS, malware, breach) that require CRITICAL severity"
-            )
+            for keyword in critical_keywords:
+                if keyword in combined:
+                    if "ddos" in keyword or "dos" in keyword:
+                        reasons.append("Network availability attack (DDoS) poses immediate service disruption and requires CRITICAL priority for mitigation and containment")
+                    elif "ransomware" in keyword:
+                        reasons.append("Ransomware infection poses critical data integrity and availability risk, and requires immediate CRITICAL response")
+                    elif "malware" in keyword:
+                        reasons.append("Malware infection poses security risk and requires CRITICAL priority for isolation and remediation")
+                    elif "breach" in keyword or "compromised" in keyword:
+                        reasons.append("Security breach indicates unauthorized access and requires immediate CRITICAL investigation and containment")
+                    elif "unauthorized" in keyword:
+                        reasons.append("Unauthorized access indicates security incident and requires CRITICAL priority investigation")
+                    break
+
+        # Device loss - escalate based on affected systems
+        if is_device_loss:
+            min_required_rank = max(min_required_rank, 3)  # Start at HIGH
+            reasons.append("Device loss detected: Lost device may contain sensitive data and requires HIGH priority for inventory tracking and potential remote wipe")
+            
+            # Escalate to CRITICAL if critical systems would be affected
+            if affected_systems and any(sys in ["Active Directory", "Email", "Database"] for sys in affected_systems):
+                min_required_rank = max(min_required_rank, 4)
+                reasons.append("Device loss with critical system access: Lost device has credentials/access to critical systems (Active Directory, Email, Database) - escalate to CRITICAL for immediate access revocation")
+
+        # Multi-system impact increases severity
+        if len(affected_systems) >= 3 and reported_rank < 3 and not is_device_loss:
+            min_required_rank = max(min_required_rank, 3)
+            affected_list = ", ".join(affected_systems)
+            reasons.append(f"Multiple system impact ({affected_list}): affects more than 2 critical systems, escalating to at least HIGH priority")
+
+        # Critical system keywords (only if not already escalated)
+        critical_systems = ["active directory", "email", "database"]
+        impacted_critical = [sys for sys in affected_systems if any(cs in sys.lower() for cs in critical_systems)]
+        if impacted_critical and reported_rank < 3 and min_required_rank < 3 and not is_device_loss:
+            min_required_rank = max(min_required_rank, 3)
+            reasons.append(f"Critical infrastructure impact: {', '.join(impacted_critical)} are essential IT services requiring at least HIGH priority")
+
+        # Authentication/security policies
+        auth_keywords = ["mfa", "authentication", "2fa", "two factor"]
+        if has_pattern(combined, auth_keywords):
+            if reported_rank < 2:
+                min_required_rank = max(min_required_rank, 2)
+                reasons.append("Authentication/security policy involved: adjust to at least MEDIUM priority for access control consistency")
 
         validated_rank = max(reported_rank, min_required_rank)
         validated = self._rank_to_severity(validated_rank)
